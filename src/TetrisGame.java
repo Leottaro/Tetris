@@ -18,10 +18,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int gridHeight;
     private int gridWidth;
     private Tetrominoes piece;
+    private Tetrominoes holdedPiece;
     private Timer gameTimer;
     private int timerDelay;
     private int fastTimerDelay;
     private boolean gameOver;
+    private boolean canhold;
     // TODO scoring system
     // TODO resizable window
 
@@ -44,6 +46,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         gridHeight = grid.length;
         gridWidth = grid[0].length;
         piece = new Tetrominoes();
+        holdedPiece = null;
+        canhold = true;
         gameTimer = new Timer(timerDelay, this);
         gameOver = false;
     }
@@ -63,21 +67,16 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             for (Block block : piece.getBlocks())
                 grid[block.getY()][block.getX()] = block;
             piece = new Tetrominoes();
+            canhold = true;
             if (!isPieceOk()) {
+                System.out.println("C'est CIAO");
                 gameOver = true;
                 pause();
             }
         }
 
-        for (int y = gridHeight - 1; y >= 0; y--) {
-            boolean isFull = true;
-            for (int x = 0; x < gridWidth; x++) {
-                if (grid[y][x] == null) {
-                    isFull = false;
-                    break;
-                }
-            }
-            if (isFull) {
+        for (int y = gridHeight - 1; y > 0; y--) {
+            if (isLineFull(y)) {
                 grid[y] = new Block[gridWidth];
                 grid[0] = new Block[gridWidth];
                 for (int i = y; i >= 1; i--) {
@@ -88,6 +87,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 y--;
             }
         }
+    }
+
+    private boolean isLineFull(int y) {
+        for (int x = 0; x < gridWidth; x++)
+            if (grid[y][x] == null)
+                return false;
+        return true;
     }
 
     private boolean isPieceOk() {
@@ -145,11 +151,27 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 repaint();
                 break;
             case 32: // SPACE
-                // TODO hard drop
+                gameTimer.stop();
+                while (isPieceOk())
+                    piece.addY(1);
+                piece.addY(-1);
+                gameTimer.start();
+                repaint();
                 break;
             case 16: // SHIFT
             case 67: // C
-                // TODO hold
+                if (canhold) {
+                    canhold = false;
+                    if (holdedPiece == null) {
+                        holdedPiece = piece.getReseted();
+                        piece = new Tetrominoes();
+                    } else {
+                        Tetrominoes temp = holdedPiece;
+                        holdedPiece = piece.getReseted();
+                        piece = temp;
+                    }
+                }
+                repaint();
                 break;
             case 157: // Command
             case 17: // Control
