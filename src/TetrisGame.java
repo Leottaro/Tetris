@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,7 +46,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         grid = new Block[20][10];
         gridHeight = grid.length;
         gridWidth = grid[0].length;
-        piece = new Tetrominoes();
+        piece = new Tetrominoes(TetroType.O);
         holdedPiece = null;
         canhold = true;
         gameTimer = new Timer(timerDelay, this);
@@ -84,7 +85,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                         grid[i][x] = grid[i - 1][x];
                     }
                 }
-                y--;
+                y = gridHeight;
             }
         }
     }
@@ -114,48 +115,58 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void draw(Graphics g) {
+        // Draw laided pieces
         for (int y = 0; y < gridHeight; y++) {
             for (int x = 0; x < gridWidth; x++) {
                 if (grid[y][x] == null)
                     g.setColor(Color.BLACK);
                 else
                     g.setColor(grid[y][x].getColor());
-                g.fillRect((x + 10) * tileSize, (y + 1) * tileSize, tileSize, tileSize);
+                g.fillRect((x + 1) * tileSize, (y + 1) * tileSize, tileSize, tileSize);
             }
         }
 
-        for (Block block : piece.getBlocks()) {
-            if (block.getY() >= 0) {
-                int x = (block.getX() + 10) * tileSize;
-                int y = (block.getY() + 1) * tileSize;
-                g.setColor(block.getColor());
-                g.fillRect(x, y, tileSize, tileSize);
-            }
-        }
+        // draw controlled piece
+        drawPiece(g, 1, 1, piece);
 
-        if (holdedPiece != null) {
-            for (Block block : holdedPiece.getBlocks()) {
-                int x = (block.getX() + 0) * tileSize;
-                int y = (block.getY() + 2) * tileSize;
-                g.setColor(block.getColor());
-                g.fillRect(x, y, tileSize, tileSize);
-            }
-        }
+        // draw holded piece
+        if (holdedPiece != null)
+            drawPiece(g, 9, 3, holdedPiece);
 
-        g.setColor(Color.GRAY);
-        int[] offsets = { tileSize * 10, tileSize * 20, tileSize * 21 };
-        for (int x = offsets[0]; x <= offsets[1]; x += tileSize)
-            g.drawLine(x, tileSize, x, offsets[2]);
-        for (int y = tileSize; y <= offsets[2]; y += tileSize)
-            g.drawLine(offsets[0], y, offsets[1], y);
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, boardWidth, tileSize);
+        g.fillRect(0, 0, tileSize, boardHeight);
+        g.fillRect(boardWidth - tileSize, 0, boardWidth, boardHeight);
+        g.fillRect(0, boardHeight - tileSize, boardWidth, boardHeight);
 
-        offsets = new int[] { tileSize * 3, tileSize * 3, tileSize * 7 };
-        for (int x = offsets[0]; x <= offsets[2]; x += tileSize)
-            g.drawLine(x, tileSize, x, offsets[1]);
-        for (int y = tileSize; y <= offsets[1]; y += tileSize)
-            g.drawLine(offsets[0], y, offsets[2], y);
+        // draw grid lines
+        drawGrid(g, tileSize, tileSize * 11, tileSize, tileSize * 21);
+
+        // draw holded container
+        drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 2, tileSize * 4);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Lucida Grande", 0, tileSize*2/3));
+        g.drawString("Holded:", tileSize*13 - tileSize/5, tileSize + g.getFontMetrics().getHeight());
     }
 
+    private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece) {
+        for (Block block : piece.getBlocks()) {
+            int x = (block.getX() + topLeftX) * tileSize;
+            int y = (block.getY() + topLeftY) * tileSize;
+            g.setColor(block.getColor());
+            g.fillRect(x, y, tileSize, tileSize);
+        }
+    }
+
+    private void drawGrid(Graphics g, int startX, int endX, int startY, int endY) {
+        g.setColor(Color.GRAY);
+        for (int x = startX; x <= endX; x += tileSize)
+            g.drawLine(x, startY, x, endY);
+        for (int y = startY; y <= endY; y += tileSize)
+            g.drawLine(startX, y, endX, y);
+    }
+
+    @Override
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
             case 38: // UP
@@ -214,7 +225,6 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             case 83: // S
             case 40: // DOWN
                 if (gameTimer.getDelay() == timerDelay) {
-                    System.out.println("GOTTA GO FAST");
                     gameTimer.setDelay(fastTimerDelay);
                     gameTimer.start();
                 }
@@ -230,7 +240,6 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             case 83: // S
             case 40: // DOWN
                 if (gameTimer.getDelay() == fastTimerDelay) {
-                    System.out.println("en fait non");
                     gameTimer.setDelay(timerDelay);
                     gameTimer.start();
                 }

@@ -83,6 +83,10 @@ public class Tetrominoes {
         }
     }
 
+    public TetroType getType() {
+        return type;
+    }
+            
     public Tetrominoes getReseted() {
         return new Tetrominoes(this.type);
     }
