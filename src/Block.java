@@ -9,6 +9,12 @@ public class Block {
         this.y = y;
     }
 
+    public Block(int x, int y, Color c) {
+        this.x = x;
+        this.y = y;
+        this.color = c;
+    }
+
     public String toString() {
         return String.format("(%d, %d)", x, y);
     }
@@ -48,6 +54,6 @@ public class Block {
     }
 
     public Block addedCoords(int x, int y) {
-        return new Block(this.x + x, this.y + y);
+        return new Block(this.x + x, this.y + y, this.color);
     }
 }
