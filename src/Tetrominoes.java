@@ -22,7 +22,7 @@ public class Tetrominoes {
         this.y = 0;
         switch (this.type) {
             case I:
-                blocks = new Block[] { new Block(-2, -1), new Block(-1, -1), new Block(0, -1), new Block(1, -1) };
+                blocks = new Block[] { new Block(-2, 0), new Block(-1, 0), new Block(0, 0), new Block(1, 0) };
                 isCentered = false;
                 color = Color.decode("#75FBFD");
                 break;
@@ -47,7 +47,7 @@ public class Tetrominoes {
                 color = Color.decode("#75FB4C");
                 break;
             case T:
-                blocks = new Block[] { new Block(-1, 0), new Block(0, 1), new Block(1, 0), new Block(0, 0) };
+                blocks = new Block[] { new Block(-1, 0), new Block(0, -1), new Block(1, 0), new Block(0, 0) };
                 isCentered = true;
                 color = Color.decode("#8C1AF5");
                 break;

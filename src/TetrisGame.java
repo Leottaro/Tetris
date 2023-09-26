@@ -133,12 +133,27 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             }
         }
 
+        if (holdedPiece != null) {
+            for (Block block : holdedPiece.getBlocks()) {
+                int x = (block.getX() + 0) * tileSize;
+                int y = (block.getY() + 2) * tileSize;
+                g.setColor(block.getColor());
+                g.fillRect(x, y, tileSize, tileSize);
+            }
+        }
+
         g.setColor(Color.GRAY);
-        int[] tileSizes = { tileSize * 10, tileSize * 20, tileSize * 21 };
-        for (int x = tileSizes[0]; x <= tileSizes[1]; x += tileSize)
-            g.drawLine(x, tileSize, x, tileSizes[2]);
-        for (int y = tileSize; y <= tileSizes[2]; y += tileSize)
-            g.drawLine(tileSizes[0], y, tileSizes[1], y);
+        int[] offsets = { tileSize * 10, tileSize * 20, tileSize * 21 };
+        for (int x = offsets[0]; x <= offsets[1]; x += tileSize)
+            g.drawLine(x, tileSize, x, offsets[2]);
+        for (int y = tileSize; y <= offsets[2]; y += tileSize)
+            g.drawLine(offsets[0], y, offsets[1], y);
+
+        offsets = new int[] { tileSize * 3, tileSize * 3, tileSize * 7 };
+        for (int x = offsets[0]; x <= offsets[2]; x += tileSize)
+            g.drawLine(x, tileSize, x, offsets[1]);
+        for (int y = tileSize; y <= offsets[1]; y += tileSize)
+            g.drawLine(offsets[0], y, offsets[2], y);
     }
 
     public void keyPressed(KeyEvent e) {
