@@ -1,60 +1,60 @@
 import java.awt.Color;
-import java.util.Random;
 
 public class Tetrominoes {
-    private enum Tetro {
-        I, J, L, O, S, T, Z;
-
-        private static Random rnd = new Random();
-
-        private static Tetro getRandom() {
-            int i = rnd.nextInt(values().length);
-            return values()[i];
-        }
-    }
-
+    private TetroType type;
     private Block[] blocks;
     private boolean isCentered; // if the rotation center is in the center of its block or in top left corner
     private int x = 5;
     private int y = 0;
 
     public Tetrominoes() {
+        Init(TetroType.getRandom());    
+    }
+
+    public Tetrominoes(TetroType type) {
+        Init(type);
+    }
+
+    private void Init(TetroType type) {
         Color color;
-        switch (Tetro.getRandom()) {
+        this.type = type;
+        this.x = 5;
+        this.y = 0;
+        switch (this.type) {
             case I:
                 blocks = new Block[] { new Block(-2, -1), new Block(-1, -1), new Block(0, -1), new Block(1, -1) };
                 isCentered = false;
-                color = Color.CYAN;
+                color = Color.decode("#75FBFD");
                 break;
             case J:
                 blocks = new Block[] { new Block(-1, -1), new Block(-1, 0), new Block(0, 0), new Block(1, 0) };
                 isCentered = true;
-                color = Color.BLUE;
+                color = Color.decode("#0000F5");
                 break;
             case L:
                 blocks = new Block[] { new Block(-1, 0), new Block(0, 0), new Block(1, 0), new Block(1, -1) };
                 isCentered = true;
-                color = Color.ORANGE;
+                color = Color.decode("#F3AE3D");
                 break;
             case O:
                 blocks = new Block[] { new Block(0, 0), new Block(-1, 0), new Block(0, -1), new Block(-1, -1) };
                 isCentered = false;
-                color = Color.YELLOW;
+                color = Color.decode("#FFFF54");
                 break;
             case S:
-                blocks = new Block[] { new Block(-1, 0), new Block(0, 0), new Block(0, 1), new Block(1, 1) };
+                blocks = new Block[] { new Block(1, -1), new Block(0, -1), new Block(0, 0), new Block(-1, 0) };
                 isCentered = true;
-                color = Color.GREEN;
+                color = Color.decode("#75FB4C");
                 break;
             case T:
                 blocks = new Block[] { new Block(-1, 0), new Block(0, 1), new Block(1, 0), new Block(0, 0) };
                 isCentered = true;
-                color = Color.MAGENTA;
+                color = Color.decode("#8C1AF5");
                 break;
             case Z:
                 blocks = new Block[] { new Block(-1, -1), new Block(0, -1), new Block(0, 0), new Block(1, 0) };
                 isCentered = true;
-                color = Color.RED;
+                color = Color.decode("#EA3323");
                 break;
             default:
                 color = Color.WHITE;
@@ -81,6 +81,10 @@ public class Tetrominoes {
             else
                 block.setCoords(block.getY(), -block.getX() - 1);
         }
+    }
+
+    public Tetrominoes getReseted() {
+        return new Tetrominoes(this.type);
     }
 
     public Block[] getBlocks() {
