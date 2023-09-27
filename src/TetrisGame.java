@@ -74,14 +74,17 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         if (!isPieceOk()) {
             piece.addY(-1);
             for (Block block : piece.getBlocks())
-                grid[block.getY()][block.getX()] = block;
+                if (block.getY() >= 0)
+                    grid[block.getY()][block.getX()] = block;
             piece = nextPiece;
             nextPiece = new Tetrominoes();
             canhold = true;
             if (!isPieceOk()) {
                 System.out.println("C'est CIAO");
+                canhold = false;
                 gameOver = true;
                 pause();
+                return;
             }
         }
 
@@ -99,15 +102,24 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 lines++;
             }
         }
+
         totalLines += lines;
-        if (lines == 1)
-            totalScore += 40 * level;
-        else if (lines == 2)
-            totalScore += 100 * level;
-        else if (lines == 3)
-            totalScore += 300 * level;
-        else if (lines == 4)
-            totalScore += 1200 * level;
+        switch (lines) {
+            case 1:
+                totalScore += 40 * level;
+                break;
+            case 2:
+                totalScore += 100 * level;
+                break;
+            case 3:
+                totalScore += 300 * level;
+                break;
+            case 4:
+                totalScore += 1200 * level;
+                break;
+            default:
+                break;
+        }
 
         if (level < 15 && totalLines >= 10 * level) {
             level++;
@@ -154,7 +166,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
 
         // draw controlled piece
-        drawPiece(g, 1, 1, piece);
+        if (!gameOver)
+            drawPiece(g, 1, 1, piece);
 
         // draw holded piece
         if (holdedPiece != null)
@@ -224,25 +237,29 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 repaint();
                 break;
             case 32: // SPACE
-                gameTimer.stop();
-                while (isPieceOk())
+                int originalY = piece.getY();
+                while (isPieceOk()) {
                     piece.addY(1);
+                }
                 piece.addY(-1);
-                gameTimer.start();
-                repaint();
+                if (piece.getY() != originalY) {
+                    gameTimer.stop();
+                    gameTimer.start();
+                    repaint();
+                }
                 break;
             case 16: // SHIFT
             case 67: // C
-                if (canhold) {
-                    canhold = false;
-                    if (holdedPiece == null) {
-                        holdedPiece = piece.getReseted();
-                        piece = new Tetrominoes();
-                    } else {
-                        Tetrominoes temp = holdedPiece;
-                        holdedPiece = piece.getReseted();
-                        piece = temp;
-                    }
+                if (!canhold)
+                    return;
+                canhold = false;
+                if (holdedPiece == null) {
+                    holdedPiece = piece.getReseted();
+                    piece = new Tetrominoes();
+                } else {
+                    Tetrominoes temp = holdedPiece;
+                    holdedPiece = piece.getReseted();
+                    piece = temp;
                 }
                 repaint();
                 break;
