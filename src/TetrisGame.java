@@ -29,15 +29,14 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private boolean canhold;
     private int totalScore;
     private int totalLines;
-    // TODO scoring system
     // TODO resizable window
 
     TetrisGame(int boardWidth, int boardHeight, int tileSize) {
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
         this.tileSize = tileSize;
-        this.timerDelay = 500;
-        this.fastTimerDelay = timerDelay / 10;
+        this.timerDelay = 250;
+        this.fastTimerDelay = timerDelay / 5;
 
         setPreferredSize(new Dimension(this.boardWidth, this.boardHeight));
         setBackground(Color.BLACK);
@@ -107,8 +106,6 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             totalScore += 300;
         else if (lines == 4)
             totalScore += 1200;
-
-        System.out.format("score: %d\n", totalScore);
     }
 
     private boolean isLineFull(int y) {
