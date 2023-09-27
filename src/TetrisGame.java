@@ -20,6 +20,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int gridWidth;
     private Tetrominoes piece;
     private Tetrominoes holdedPiece;
+    private Tetrominoes nextPiece;
     private Timer gameTimer;
     private int timerDelay;
     private int fastTimerDelay;
@@ -46,8 +47,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         grid = new Block[20][10];
         gridHeight = grid.length;
         gridWidth = grid[0].length;
-        piece = new Tetrominoes(TetroType.O);
+        piece = new Tetrominoes();
         holdedPiece = null;
+        nextPiece = new Tetrominoes();
         canhold = true;
         gameTimer = new Timer(timerDelay, this);
         gameOver = false;
@@ -67,7 +69,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             piece.addY(-1);
             for (Block block : piece.getBlocks())
                 grid[block.getY()][block.getX()] = block;
-            piece = new Tetrominoes();
+            piece = nextPiece;
+            nextPiece = new Tetrominoes();
             canhold = true;
             if (!isPieceOk()) {
                 System.out.println("C'est CIAO");
@@ -133,6 +136,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         if (holdedPiece != null)
             drawPiece(g, 9, 3, holdedPiece);
 
+        // draw next piece
+        drawPiece(g, 9, 7, nextPiece);
+
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, boardWidth, tileSize);
         g.fillRect(0, 0, tileSize, boardHeight);
@@ -145,8 +151,14 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         // draw holded container
         drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 2, tileSize * 4);
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Lucida Grande", 0, tileSize*2/3));
-        g.drawString("Holded:", tileSize*13 - tileSize/5, tileSize + g.getFontMetrics().getHeight());
+        g.setFont(new Font("Lucida Grande", 0, tileSize * 2 / 3));
+        g.drawString("Holded:", tileSize * 13 - tileSize / 5, tileSize + g.getFontMetrics().getHeight());
+
+        // draw next piece container
+        drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 6, tileSize * 8);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Lucida Grande", 0, tileSize * 2 / 3));
+        g.drawString("Next Piece:", tileSize * 12 + tileSize / 4, tileSize * 5 + g.getFontMetrics().getHeight());
     }
 
     private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece) {

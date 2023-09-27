@@ -6,10 +6,11 @@ public class App {
     public static final int gridHeight = 22;
     public static final int timerDelay = 100;
     public static final double snakeWidth = 1. / 4;
+    public static final double screenPart = 0.75;
 
     public static void main(String[] args) throws Exception {
-        int boardWidth = (int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth()*0.75);
-        int boardHeight = (int)(Toolkit.getDefaultToolkit().getScreenSize().getHeight()*0.75);
+        int boardWidth = (int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth()*screenPart);
+        int boardHeight = (int)(Toolkit.getDefaultToolkit().getScreenSize().getHeight()*screenPart);
         int tileSize = Math.min(boardWidth/gridWidth, boardHeight/gridHeight);
         boardWidth = tileSize*gridWidth;
         boardHeight = tileSize*gridHeight;
