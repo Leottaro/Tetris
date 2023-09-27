@@ -29,6 +29,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private boolean canhold;
     private int totalScore;
     private int totalLines;
+    private int level;
     // TODO resizable window
 
     TetrisGame(int boardWidth, int boardHeight, int tileSize) {
@@ -57,6 +58,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         gameOver = false;
         totalScore = 0;
         totalLines = 0;
+        level = 0;
     }
 
     @Override
@@ -99,13 +101,20 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
         totalLines += lines;
         if (lines == 1)
-            totalScore += 40;
+            totalScore += 40 * level;
         else if (lines == 2)
-            totalScore += 100;
+            totalScore += 100 * level;
         else if (lines == 3)
-            totalScore += 300;
+            totalScore += 300 * level;
         else if (lines == 4)
-            totalScore += 1200;
+            totalScore += 1200 * level;
+
+        if (level < 15 && totalLines >= 10 * level) {
+            level++;
+            timerDelay = 500 / level;
+            fastTimerDelay = timerDelay / 5;
+            gameTimer.setDelay(timerDelay);
+        }
     }
 
     private boolean isLineFull(int y) {
@@ -167,6 +176,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 6, tileSize * 8); // next piece
         g.drawRect(tileSize * 12, tileSize * 14, tileSize * 4, tileSize); // Score string
         g.drawRect(tileSize * 12, tileSize * 17, tileSize * 4, tileSize); // Lines string
+        g.drawRect(tileSize * 12, tileSize * 20, tileSize * 4, tileSize); // Level string
 
         // draw texts
         g.setColor(Color.WHITE);
@@ -177,6 +187,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         drawCenteredString(g, String.format("%d", totalScore), tileSize * 14, tileSize * 14.5);
         drawCenteredString(g, "Lines:", tileSize * 14, tileSize * 16.5);
         drawCenteredString(g, String.format("%d", totalLines), tileSize * 14, tileSize * 17.5);
+        drawCenteredString(g, "Level:", tileSize * 14, tileSize * 19.5);
+        drawCenteredString(g, String.format("%d", level), tileSize * 14, tileSize * 20.5);
     }
 
     private void drawCenteredString(Graphics g, String str, double x, double y) {
