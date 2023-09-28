@@ -9,11 +9,11 @@ public class App {
     public static final double screenPart = 0.75;
 
     public static void main(String[] args) throws Exception {
-        int boardWidth = (int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth()*screenPart);
-        int boardHeight = (int)(Toolkit.getDefaultToolkit().getScreenSize().getHeight()*screenPart);
-        int tileSize = Math.min(boardWidth/gridWidth, boardHeight/gridHeight);
-        boardWidth = tileSize*gridWidth;
-        boardHeight = tileSize*gridHeight;
+        int boardWidth = (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() * screenPart);
+        int boardHeight = (int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() * screenPart);
+        int tileSize = Math.min(boardWidth / gridWidth, boardHeight / gridHeight);
+        boardWidth = tileSize * gridWidth;
+        boardHeight = tileSize * gridHeight;
 
         JFrame frame = new JFrame("Tetris");
         frame.setVisible(true);

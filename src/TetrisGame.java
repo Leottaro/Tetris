@@ -30,6 +30,10 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int totalScore;
     private int totalLines;
     private int level;
+    private boolean storing;
+    private final String fileScoreName = "tetris_score";
+    private final String fileLinesName = "tetris_lines";
+    private final String fileLevelName = "tetris_level";
     // TODO resizable window
 
     TetrisGame(int boardWidth, int boardHeight, int tileSize) {
@@ -59,6 +63,11 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         totalScore = 0;
         totalLines = 0;
         level = 0;
+        storing = Storage.createFile(fileScoreName, totalScore);
+        if (storing)
+            storing = Storage.createFile(fileLinesName, totalLines);
+        if (storing)
+            storing = Storage.createFile(fileLevelName, level);
     }
 
     @Override
@@ -127,6 +136,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             fastTimerDelay = timerDelay / 5;
             gameTimer.setDelay(timerDelay);
         }
+
+        if (storing && Storage.read(fileScoreName) < totalScore) {
+            Storage.write(fileScoreName, totalScore);
+            Storage.write(fileLinesName, totalLines);
+            Storage.write(fileLevelName, level);
+        }
     }
 
     private boolean isLineFull(int y) {
@@ -187,6 +202,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         drawGrid(g, tileSize, tileSize * 11, tileSize, tileSize * 21); // playfield
         drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 2, tileSize * 4); // holded piece
         drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 6, tileSize * 8); // next piece
+        g.drawRect(tileSize * 12, tileSize * 11, tileSize * 4, tileSize); // HighScore string
         g.drawRect(tileSize * 12, tileSize * 14, tileSize * 4, tileSize); // Score string
         g.drawRect(tileSize * 12, tileSize * 17, tileSize * 4, tileSize); // Lines string
         g.drawRect(tileSize * 12, tileSize * 20, tileSize * 4, tileSize); // Level string
@@ -196,6 +212,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         g.setFont(new Font("Lucida Grande", 0, tileSize * 2 / 3));
         drawCenteredString(g, "Holded:", tileSize * 14, tileSize * 1.5);
         drawCenteredString(g, "Next Piece:", tileSize * 14, tileSize * 5.5);
+        drawCenteredString(g, "High score:", tileSize * 14, tileSize * 10.5);
+        drawCenteredString(g, String.format("%d", Storage.read(fileScoreName)), tileSize * 14, tileSize * 11.5);
         drawCenteredString(g, "Score:", tileSize * 14, tileSize * 13.5);
         drawCenteredString(g, String.format("%d", totalScore), tileSize * 14, tileSize * 14.5);
         drawCenteredString(g, "Lines:", tileSize * 14, tileSize * 16.5);
