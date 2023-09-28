@@ -1,3 +1,4 @@
 *.jar
 .vscode
 bin/
+.DS_Store
