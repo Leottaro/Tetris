@@ -34,7 +34,6 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private final String fileScoreName = "tetris_score";
     private final String fileLinesName = "tetris_lines";
     private final String fileLevelName = "tetris_level";
-    // TODO resizable window
 
     TetrisGame(int boardWidth, int boardHeight, int tileSize) {
         this.boardWidth = boardWidth;
@@ -181,15 +180,23 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
 
         // draw controlled piece
-        if (!gameOver)
-            drawPiece(g, 1, 1, piece);
+        if (!gameOver) {
+            drawPiece(g, 1, 1, piece, true);
+            int originalY = piece.getY();
+            while (isPieceOk())
+                piece.addY(1);
+            piece.addY(-1);
+            drawPiece(g, 1, 1, piece, false);
+            while (piece.getY() != originalY)
+                piece.addY(-1);
+        }
 
         // draw holded piece
         if (holdedPiece != null)
-            drawPiece(g, 9, 3, holdedPiece);
+            drawPiece(g, 9, 3, holdedPiece, true);
 
         // draw next piece
-        drawPiece(g, 9, 7, nextPiece);
+        drawPiece(g, 9, 7, nextPiece, true);
 
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, boardWidth, tileSize);
@@ -228,12 +235,15 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 (int) y - metrics.getHeight() / 2 + metrics.getAscent());
     }
 
-    private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece) {
+    private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece, boolean filled) {
         for (Block block : piece.getBlocks()) {
             int x = (block.getX() + topLeftX) * tileSize;
             int y = (block.getY() + topLeftY) * tileSize;
             g.setColor(block.getColor());
-            g.fillRect(x, y, tileSize, tileSize);
+            if (filled)
+                g.fillRect(x, y, tileSize, tileSize);
+            else
+                g.drawRoundRect(x + 1, y + 1, tileSize - 2, tileSize - 2, tileSize / 10, tileSize / 10);
         }
     }
 
