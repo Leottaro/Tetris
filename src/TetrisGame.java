@@ -12,13 +12,15 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class TetrisGame extends JPanel implements ActionListener, KeyListener {
-    final int boardWidth;
-    final int boardHeight;
-    final int tileSize;
+    final static int FRAME_GRID_WIDTH = 17;
+    final static int FRAME_GRID_HEIGHT = 22;
+    final static int GRID_WIDTH = 10;
+    final static int GRID_HEIGHT = 20;
+    final int WIDTH;
+    final int HEIGHT;
+    final int TILE_SIZE;
 
     private Block[][] grid;
-    private int gridHeight;
-    private int gridWidth;
     private Tetrominoes piece;
     private Tetrominoes holdedPiece;
     private Tetrominoes nextPiece;
@@ -36,13 +38,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private final String fileLevelName = "tetris_level";
 
     TetrisGame(int boardWidth, int boardHeight, int tileSize) {
-        this.boardWidth = boardWidth;
-        this.boardHeight = boardHeight;
-        this.tileSize = tileSize;
+        this.WIDTH = boardWidth;
+        this.HEIGHT = boardHeight;
+        this.TILE_SIZE = tileSize;
         this.timerDelay = 250;
         this.fastTimerDelay = timerDelay / 5;
 
-        setPreferredSize(new Dimension(this.boardWidth, this.boardHeight));
+        setPreferredSize(new Dimension(this.WIDTH, this.HEIGHT));
         setBackground(Color.BLACK);
         addKeyListener(this);
         setFocusable(true);
@@ -50,9 +52,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     private void Init() {
-        grid = new Block[20][10];
-        gridHeight = grid.length;
-        gridWidth = grid[0].length;
+        grid = new Block[GRID_HEIGHT][GRID_WIDTH];
         piece = new Tetrominoes();
         holdedPiece = null;
         nextPiece = new Tetrominoes();
@@ -97,16 +97,16 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
 
         int lines = 0;
-        for (int y = gridHeight - 1; y > 0; y--) {
+        for (int y = GRID_HEIGHT - 1; y > 0; y--) {
             if (isLineFull(y)) {
-                grid[y] = new Block[gridWidth];
-                grid[0] = new Block[gridWidth];
+                grid[y] = new Block[GRID_WIDTH];
+                grid[0] = new Block[GRID_WIDTH];
                 for (int i = y; i >= 1; i--) {
-                    for (int x = 0; x < gridWidth; x++) {
+                    for (int x = 0; x < GRID_WIDTH; x++) {
                         grid[i][x] = grid[i - 1][x];
                     }
                 }
-                y = gridHeight;
+                y = GRID_HEIGHT;
                 lines++;
             }
         }
@@ -144,7 +144,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     private boolean isLineFull(int y) {
-        for (int x = 0; x < gridWidth; x++)
+        for (int x = 0; x < GRID_WIDTH; x++)
             if (grid[y][x] == null)
                 return false;
         return true;
@@ -154,7 +154,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         for (Block block : piece.getBlocks()) {
             int x = block.getX();
             int y = block.getY();
-            if (x < 0 || gridWidth <= x || gridHeight <= y)
+            if (x < 0 || GRID_WIDTH <= x || GRID_HEIGHT <= y)
                 return false;
             if (y >= 0 && grid[y][x] != null)
                 return false;
@@ -168,14 +168,18 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void draw(Graphics g) {
+        // Draw background
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
         // Draw laided pieces
-        for (int y = 0; y < gridHeight; y++) {
-            for (int x = 0; x < gridWidth; x++) {
+        for (int y = 0; y < GRID_HEIGHT; y++) {
+            for (int x = 0; x < GRID_WIDTH; x++) {
                 if (grid[y][x] == null)
                     g.setColor(Color.BLACK);
                 else
                     g.setColor(grid[y][x].getColor());
-                g.fillRect((x + 1) * tileSize, (y + 1) * tileSize, tileSize, tileSize);
+                g.fillRect((x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
         }
 
@@ -198,35 +202,51 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         // draw next piece
         drawPiece(g, 9, 7, nextPiece, true);
 
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, boardWidth, tileSize);
-        g.fillRect(0, 0, tileSize, boardHeight);
-        g.fillRect(boardWidth - tileSize, 0, boardWidth, boardHeight);
-        g.fillRect(0, boardHeight - tileSize, boardWidth, boardHeight);
-
-        // draw containers
+        // draw playing containers
         g.setColor(Color.GRAY);
-        drawGrid(g, tileSize, tileSize * 11, tileSize, tileSize * 21); // playfield
-        drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 2, tileSize * 4); // holded piece
-        drawGrid(g, tileSize * 12, tileSize * 16, tileSize * 6, tileSize * 8); // next piece
-        g.drawRect(tileSize * 12, tileSize * 11, tileSize * 4, tileSize); // HighScore string
-        g.drawRect(tileSize * 12, tileSize * 14, tileSize * 4, tileSize); // Score string
-        g.drawRect(tileSize * 12, tileSize * 17, tileSize * 4, tileSize); // Lines string
-        g.drawRect(tileSize * 12, tileSize * 20, tileSize * 4, tileSize); // Level string
+        drawGrid(g, TILE_SIZE, TILE_SIZE * 11, TILE_SIZE, TILE_SIZE * 21); // playfield
+        drawGrid(g, TILE_SIZE * 12, TILE_SIZE * 16, TILE_SIZE * 2, TILE_SIZE * 4); // holded piece
+        drawGrid(g, TILE_SIZE * 12, TILE_SIZE * 16, TILE_SIZE * 6, TILE_SIZE * 8); // next piece
 
-        // draw texts
+        // draw playing texts
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Lucida Grande", 0, tileSize * 2 / 3));
-        drawCenteredString(g, "Holded:", tileSize * 14, tileSize * 1.5);
-        drawCenteredString(g, "Next Piece:", tileSize * 14, tileSize * 5.5);
-        drawCenteredString(g, "High score:", tileSize * 14, tileSize * 10.5);
-        drawCenteredString(g, String.format("%d", Storage.read(fileScoreName)), tileSize * 14, tileSize * 11.5);
-        drawCenteredString(g, "Score:", tileSize * 14, tileSize * 13.5);
-        drawCenteredString(g, String.format("%d", totalScore), tileSize * 14, tileSize * 14.5);
-        drawCenteredString(g, "Lines:", tileSize * 14, tileSize * 16.5);
-        drawCenteredString(g, String.format("%d", totalLines), tileSize * 14, tileSize * 17.5);
-        drawCenteredString(g, "Level:", tileSize * 14, tileSize * 19.5);
-        drawCenteredString(g, String.format("%d", level), tileSize * 14, tileSize * 20.5);
+        g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2 / 3));
+        drawCenteredString(g, "Holded:", TILE_SIZE * 14, TILE_SIZE * 1.5);
+        drawCenteredString(g, "Next Piece:", TILE_SIZE * 14, TILE_SIZE * 5.5);
+
+        // draw pause screen
+        if (!isRunning())
+            drawPauseScreen(g);
+
+        // draw information containers
+        g.setColor(Color.GRAY);
+        g.drawRect(TILE_SIZE * 12, TILE_SIZE * 11, TILE_SIZE * 4, TILE_SIZE); // HighScore string
+        g.drawRect(TILE_SIZE * 12, TILE_SIZE * 14, TILE_SIZE * 4, TILE_SIZE); // Score string
+        g.drawRect(TILE_SIZE * 12, TILE_SIZE * 17, TILE_SIZE * 4, TILE_SIZE); // Lines string
+        g.drawRect(TILE_SIZE * 12, TILE_SIZE * 20, TILE_SIZE * 4, TILE_SIZE); // Level string
+
+        // draw information texts
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2 / 3));
+        drawCenteredString(g, "High score:", TILE_SIZE * 14, TILE_SIZE * 10.5);
+        drawCenteredString(g, String.format("%d", Storage.read(fileScoreName)), TILE_SIZE * 14, TILE_SIZE * 11.5);
+        drawCenteredString(g, "Score:", TILE_SIZE * 14, TILE_SIZE * 13.5);
+        drawCenteredString(g, String.format("%d", totalScore), TILE_SIZE * 14, TILE_SIZE * 14.5);
+        drawCenteredString(g, "Lines:", TILE_SIZE * 14, TILE_SIZE * 16.5);
+        drawCenteredString(g, String.format("%d", totalLines), TILE_SIZE * 14, TILE_SIZE * 17.5);
+        drawCenteredString(g, "Level:", TILE_SIZE * 14, TILE_SIZE * 19.5);
+        drawCenteredString(g, String.format("%d", level), TILE_SIZE * 14, TILE_SIZE * 20.5);
+    }
+
+    private void drawPauseScreen(Graphics g) {
+        // draw black screen
+        g.setColor(new Color(0, 0, 0, 175));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // draw Title
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2));
+        drawCenteredString(g, (gameOver ? "Game Over" : "Pause"), WIDTH / 2, TILE_SIZE * 3);
     }
 
     private void drawCenteredString(Graphics g, String str, double x, double y) {
@@ -237,25 +257,40 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
     private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece, boolean filled) {
         for (Block block : piece.getBlocks()) {
-            int x = (block.getX() + topLeftX) * tileSize;
-            int y = (block.getY() + topLeftY) * tileSize;
-            g.setColor(block.getColor());
-            if (filled)
-                g.fillRect(x, y, tileSize, tileSize);
-            else
-                g.drawRoundRect(x + 1, y + 1, tileSize - 2, tileSize - 2, tileSize / 10, tileSize / 10);
+            int x = (block.getX() + topLeftX) * TILE_SIZE;
+            int y = (block.getY() + topLeftY) * TILE_SIZE;
+            if (x >= TILE_SIZE && y >= TILE_SIZE && x <= WIDTH - TILE_SIZE && y <= HEIGHT - TILE_SIZE) {
+                g.setColor(block.getColor());
+                if (filled)
+                    g.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+                else
+                    g.drawRoundRect(x + 1, y + 1, TILE_SIZE - 2, TILE_SIZE - 2, TILE_SIZE / 10, TILE_SIZE / 10);
+            }
         }
     }
 
     private void drawGrid(Graphics g, int startX, int endX, int startY, int endY) {
-        for (int x = startX; x <= endX; x += tileSize)
+        for (int x = startX; x <= endX; x += TILE_SIZE)
             g.drawLine(x, startY, x, endY);
-        for (int y = startY; y <= endY; y += tileSize)
+        for (int y = startY; y <= endY; y += TILE_SIZE)
             g.drawLine(startX, y, endX, y);
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (!isRunning()) {
+            if (gameOver)
+                return;
+            switch (e.getKeyCode()) {
+                case 27: // ESCAPE
+                    start();
+                    repaint();
+                    break;
+                default:
+                    break;
+            }
+            return;
+        }
         switch (e.getKeyCode()) {
             case 38: // UP
             case 88: // X
@@ -299,8 +334,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 repaint();
                 break;
             case 27: // ESCAPE
-            case 112: // F1
-                // TODO pause
+                pause();
+                repaint();
                 break;
             case 37: // LEFT
                 piece.addX(-1);
@@ -342,6 +377,10 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     // User function
+
+    public boolean isRunning() {
+        return gameTimer.isRepeats();
+    }
 
     public void start() {
         if (gameOver)

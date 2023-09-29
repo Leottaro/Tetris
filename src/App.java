@@ -2,8 +2,6 @@ import java.awt.Toolkit;
 import javax.swing.JFrame;
 
 public class App {
-    public static final int gridWidth = 17;
-    public static final int gridHeight = 22;
     public static final int timerDelay = 100;
     public static final double snakeWidth = 1. / 4;
     public static final double screenPart = 0.75;
@@ -11,9 +9,9 @@ public class App {
     public static void main(String[] args) throws Exception {
         int boardWidth = (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() * screenPart);
         int boardHeight = (int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() * screenPart);
-        int tileSize = Math.min(boardWidth / gridWidth, boardHeight / gridHeight);
-        boardWidth = tileSize * gridWidth;
-        boardHeight = tileSize * gridHeight;
+        int tileSize = Math.min(boardWidth / TetrisGame.FRAME_GRID_WIDTH, boardHeight / TetrisGame.FRAME_GRID_HEIGHT);
+        boardWidth = tileSize * TetrisGame.FRAME_GRID_WIDTH;
+        boardHeight = tileSize * TetrisGame.FRAME_GRID_HEIGHT;
 
         JFrame frame = new JFrame("Tetris");
         frame.setVisible(true);
