@@ -12,6 +12,9 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class TetrisGame extends JPanel implements ActionListener, KeyListener {
+    private static final String fileScoreName = "tetris_score";
+    private static final String fileLinesName = "tetris_lines";
+    private static final String fileLevelName = "tetris_level";
     final static int FRAME_GRID_WIDTH = 17;
     final static int FRAME_GRID_HEIGHT = 22;
     final static int GRID_WIDTH = 10;
@@ -20,6 +23,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     final int HEIGHT;
     final int TILE_SIZE;
 
+    private boolean hasStarted;
     private Block[][] grid;
     private Tetrominoes piece;
     private Tetrominoes holdedPiece;
@@ -33,16 +37,11 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int totalLines;
     private int level;
     private boolean storing;
-    private final String fileScoreName = "tetris_score";
-    private final String fileLinesName = "tetris_lines";
-    private final String fileLevelName = "tetris_level";
 
     TetrisGame(int boardWidth, int boardHeight, int tileSize) {
         this.WIDTH = boardWidth;
         this.HEIGHT = boardHeight;
         this.TILE_SIZE = tileSize;
-        this.timerDelay = 250;
-        this.fastTimerDelay = timerDelay / 5;
 
         setPreferredSize(new Dimension(this.WIDTH, this.HEIGHT));
         setBackground(Color.BLACK);
@@ -52,13 +51,17 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     private void Init() {
+        hasStarted = false;
         grid = new Block[GRID_HEIGHT][GRID_WIDTH];
         piece = new Tetrominoes();
         holdedPiece = null;
         nextPiece = new Tetrominoes();
-        canhold = true;
         gameTimer = new Timer(timerDelay, this);
+        timerDelay = 250;
+        fastTimerDelay = 50;
         gameOver = false;
+        canhold = true;
+        pause();
         totalScore = 0;
         totalLines = 0;
         level = 0;
@@ -81,19 +84,23 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         piece.addY(1);
         if (!isPieceOk()) {
             piece.addY(-1);
-            for (Block block : piece.getBlocks())
+            for (Block block : piece.getBlocks()) {
                 if (block.getY() >= 0)
                     grid[block.getY()][block.getX()] = block;
+                else {
+                    gameOver = true;
+                }
+            }
+            if (gameOver) {
+                System.out.println("C'est CIAO");
+                canhold = false;
+                pause();
+                gameOver = true;
+                return;
+            }
             piece = nextPiece;
             nextPiece = new Tetrominoes();
             canhold = true;
-            if (!isPieceOk()) {
-                System.out.println("C'est CIAO");
-                canhold = false;
-                gameOver = true;
-                pause();
-                return;
-            }
         }
 
         int lines = 0;
@@ -246,7 +253,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         // draw Title
         g.setColor(Color.WHITE);
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2));
-        drawCenteredString(g, (gameOver ? "Game Over" : "Pause"), WIDTH / 2, TILE_SIZE * 3);
+        drawCenteredString(g, (gameOver ? "Game Over" : (hasStarted ? "Pause" : "Tetris")), WIDTH / 2, TILE_SIZE * 3);
+        g.setFont(new Font("Lucida Grande", 0, TILE_SIZE / 2));
+        drawCenteredString(g,
+                "Press " + (!hasStarted || gameOver ? "Enter" : "Escape") + " to "
+                        + (hasStarted ? "re" : "") + "start",
+                WIDTH / 2,
+                TILE_SIZE * 4.5);
     }
 
     private void drawCenteredString(Graphics g, String str, double x, double y) {
@@ -279,15 +292,14 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (!isRunning()) {
-            if (gameOver)
-                return;
-            switch (e.getKeyCode()) {
-                case 27: // ESCAPE
+            if (!hasStarted || gameOver) {
+                if (e.getKeyCode() == 10) { // ENTER
                     start();
                     repaint();
-                    break;
-                default:
-                    break;
+                }
+            } else if (e.getKeyCode() == 27) { // ESCAPE
+                start();
+                repaint();
             }
             return;
         }
@@ -384,14 +396,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
     public void start() {
         if (gameOver)
-            return;
+            Init();
+        hasStarted = true;
         gameTimer.setRepeats(true);
         gameTimer.start();
     }
 
     public void pause() {
-        if (gameOver)
-            return;
         gameTimer.setRepeats(false);
         gameTimer.stop();
     }
