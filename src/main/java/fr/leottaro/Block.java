@@ -1,3 +1,5 @@
+package fr.leottaro;
+
 import java.awt.Color;
 
 public class Block {
@@ -29,7 +31,7 @@ public class Block {
 
     public Color getColor() {
         return color;
-    } 
+    }
 
     public void setX(int x) {
         this.x = x;

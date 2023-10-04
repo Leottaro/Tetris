@@ -1,3 +1,5 @@
+package fr.leottaro;
+
 import java.util.Random;
 
 public enum TetroType {
@@ -22,8 +24,9 @@ public enum TetroType {
     }
 
     public static TetroType getRandom() {
-        if (tetroI >= tetroSize) genList();
+        if (tetroI >= tetroSize)
+            genList();
         tetroI++;
-        return tetroList[tetroI-1];
+        return tetroList[tetroI - 1];
     }
 }

@@ -1,4 +1,6 @@
 *.jar
-.vscode
-bin/
+pom.xml
 .DS_Store
+
+.vscode
+target/

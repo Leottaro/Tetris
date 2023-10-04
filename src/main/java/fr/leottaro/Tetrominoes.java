@@ -1,3 +1,5 @@
+package fr.leottaro;
+
 import java.awt.Color;
 
 public class Tetrominoes {
@@ -8,7 +10,7 @@ public class Tetrominoes {
     private int y = 0;
 
     public Tetrominoes() {
-        Init(TetroType.getRandom());    
+        Init(TetroType.getRandom());
     }
 
     public Tetrominoes(TetroType type) {
@@ -86,7 +88,7 @@ public class Tetrominoes {
     public TetroType getType() {
         return type;
     }
-            
+
     public Tetrominoes getReseted() {
         return new Tetrominoes(this.type);
     }
