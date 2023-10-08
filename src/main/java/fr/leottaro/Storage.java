@@ -1,16 +1,25 @@
 package fr.leottaro;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 public class Storage {
     private static final String key = String.format("\"%s%s%s\"", System.getProperty("os.arch"),
             System.getProperty("os.name"), System.getProperty("user.home"));
+    private static final String baseUrl = "localhost:9090";
 
     private static String storagePath() {
         String OS = System.getProperty("os.name").toLowerCase();
@@ -101,5 +110,70 @@ public class Storage {
             return false;
         }
         return true;
+    }
+
+    private static JsonObject getJsonRequest(URL url) {
+        try {
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Accept", "application/json");
+            con.connect();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String output = "";
+            String line = "";
+            while ((line = br.readLine()) != null)
+                output += line;
+
+            con.disconnect();
+            return JsonParser.parseString(output).getAsJsonObject();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public static JsonObject getJsonObject() {
+        try {
+            return getJsonRequest(new URL(baseUrl));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public static JsonObject getJsonObject(String game, String... options) {
+        try {
+            String url = baseUrl + game + "/getData?";
+            for (String option : options)
+                url += option + "&";
+            return getJsonRequest(new URL(url));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public static void postJsonRequest(String game, String jsonData) {
+        String finalData = String.format("{\"userName\":\"%s\",\"Data\":%s}", System.getProperty("user.name"), jsonData);
+        try {
+            URL url = new URL(baseUrl + game + "/postData");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestMethod("POST");
+
+            OutputStream output = connection.getOutputStream();
+            output.write(finalData.getBytes("UTF-8"));
+            output.flush();
+            output.close();
+
+            if (connection.getResponseCode() != 200)
+                System.out.println(connection.getResponseMessage());
+            
+            connection.disconnect();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

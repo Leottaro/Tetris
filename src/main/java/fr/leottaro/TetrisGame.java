@@ -13,7 +13,10 @@ import java.awt.event.KeyListener;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import com.google.gson.JsonObject;
+
 public class TetrisGame extends JPanel implements ActionListener, KeyListener {
+    private static final String dataFormat = "{\"Pseudo\":\"%s\",\"Score\":%d,\"Lines\":%d,\"Level\":%d}";
     private static final String fileScoreName = "tetris_score";
     private static final String fileLinesName = "tetris_lines";
     private static final String fileLevelName = "tetris_level";
@@ -39,6 +42,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int totalLines;
     private int level;
     private boolean storing;
+    private boolean hasBestScore;
 
     TetrisGame(int boardWidth, int boardHeight, int tileSize) {
         this.WIDTH = boardWidth;
@@ -58,20 +62,31 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         piece = new Tetrominoes();
         holdedPiece = null;
         nextPiece = new Tetrominoes();
-        gameTimer = new Timer(timerDelay, this);
         timerDelay = 250;
         fastTimerDelay = 50;
+        gameTimer = new Timer(timerDelay, this);
         gameOver = false;
         canhold = true;
         pause();
         totalScore = 0;
         totalLines = 0;
         level = 0;
-        storing = Storage.createFile(fileScoreName, totalScore);
-        if (storing)
-            storing = Storage.createFile(fileLinesName, totalLines);
-        if (storing)
-            storing = Storage.createFile(fileLevelName, level);
+        storing = false;
+        hasBestScore = false;
+        if (!Storage.createFile(fileScoreName, totalScore))
+            return;
+        if (!Storage.createFile(fileLinesName, totalLines))
+            return;
+        if (!Storage.createFile(fileLevelName, level))
+            return;
+        storing = true;
+
+        JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
+        if (data != null) {
+            Storage.write(fileScoreName, data.get("Score").getAsInt());
+            Storage.write(fileLinesName, data.get("Lines").getAsInt());
+            Storage.write(fileLevelName, data.get("Level").getAsInt());
+        }
     }
 
     @Override
@@ -94,10 +109,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 }
             }
             if (gameOver) {
-                System.out.println("C'est CIAO");
                 canhold = false;
                 pause();
                 gameOver = true;
+                if (hasBestScore) {
+                    String data = String.format(dataFormat, "", Storage.read(fileLinesName), Storage.read(fileScoreName), Storage.read(fileLevelName));
+                    Storage.postJsonRequest("Tetris", data);
+                }
                 return;
             }
             piece = nextPiece;
@@ -145,7 +163,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             gameTimer.setDelay(timerDelay);
         }
 
-        if (storing && Storage.read(fileScoreName) < totalScore) {
+        if (storing && (hasBestScore || Storage.read(fileScoreName) < totalScore)) {
+            hasBestScore = true;
             Storage.write(fileScoreName, totalScore);
             Storage.write(fileLinesName, totalLines);
             Storage.write(fileLevelName, level);
@@ -257,11 +276,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2));
         drawCenteredString(g, (gameOver ? "Game Over" : (hasStarted ? "Pause" : "Tetris")), WIDTH / 2, TILE_SIZE * 3);
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE / 2));
-        drawCenteredString(g,
-                "Press " + (!hasStarted || gameOver ? "Enter" : "Escape") + " to "
-                        + (hasStarted ? "re" : "") + "start",
-                WIDTH / 2,
-                TILE_SIZE * 4.5);
+        drawCenteredString(g, "Press " + (!hasStarted || gameOver ? "Enter" : "Escape") + " to " + (hasStarted ? "re" : "") + "start", WIDTH / 2, TILE_SIZE * 4.5);
     }
 
     private void drawCenteredString(Graphics g, String str, double x, double y) {
