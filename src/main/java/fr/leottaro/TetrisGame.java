@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.concurrent.CompletableFuture;
 
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -81,12 +82,16 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             return;
         storing = true;
 
-        JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
-        if (data != null) {
-            Storage.write(fileScoreName, data.get("Score").getAsInt());
-            Storage.write(fileLinesName, data.get("Lines").getAsInt());
-            Storage.write(fileLevelName, data.get("Level").getAsInt());
-        }
+        CompletableFuture.runAsync(() -> {
+            JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
+            if (data != null) {
+                Storage.write(fileScoreName, data.get("Score").getAsInt());
+                Storage.write(fileLinesName, data.get("Lines").getAsInt());
+                Storage.write(fileLevelName, data.get("Level").getAsInt());
+            }
+            Storage.postJsonRequest("Tetris", String.format(dataFormat, "", Storage.read(fileScoreName),
+                    Storage.read(fileLinesName), Storage.read(fileLevelName)));
+        });
     }
 
     @Override
@@ -106,6 +111,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     grid[block.getY()][block.getX()] = block;
                 else {
                     gameOver = true;
+                    break;
                 }
             }
             if (gameOver) {
@@ -113,8 +119,11 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 pause();
                 gameOver = true;
                 if (hasBestScore) {
-                    String data = String.format(dataFormat, "", Storage.read(fileLinesName), Storage.read(fileScoreName), Storage.read(fileLevelName));
-                    Storage.postJsonRequest("Tetris", data);
+                    CompletableFuture.runAsync(() -> {
+                        String data = String.format(dataFormat, "", Storage.read(fileScoreName),
+                                Storage.read(fileLinesName), Storage.read(fileLevelName));
+                        Storage.postJsonRequest("Tetris", data);
+                    });
                 }
                 return;
             }
@@ -276,7 +285,18 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2));
         drawCenteredString(g, (gameOver ? "Game Over" : (hasStarted ? "Pause" : "Tetris")), WIDTH / 2, TILE_SIZE * 3);
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE / 2));
-        drawCenteredString(g, "Press " + (!hasStarted || gameOver ? "Enter" : "Escape") + " to " + (hasStarted ? "re" : "") + "start", WIDTH / 2, TILE_SIZE * 4.5);
+        String instruction = "";
+        if (hasStarted) {
+            if (gameOver)
+                instruction = "Press Enter to restart";
+            else {
+                instruction = "Press Escape to resume";
+                drawCenteredString(g, "Press r to restart", WIDTH / 2, TILE_SIZE * 5.5);
+            }
+        } else if (!gameOver) {
+            instruction = "Press Enter to start";
+        }
+        drawCenteredString(g, instruction, WIDTH / 2, TILE_SIZE * 4.5);
     }
 
     private void drawCenteredString(Graphics g, String str, double x, double y) {
@@ -309,12 +329,15 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (!isRunning()) {
-            if (!hasStarted || gameOver) {
-                if (e.getKeyCode() == 10) { // ENTER
+            if (hasStarted && !gameOver) {
+                if (e.getKeyCode() == 27) { // ESCAPE
                     start();
                     repaint();
+                } else if (e.getKeyCode() == 82) { // R
+                    Init();
+                    repaint();
                 }
-            } else if (e.getKeyCode() == 27) { // ESCAPE
+            } else if (e.getKeyCode() == 10) { // ENTER
                 start();
                 repaint();
             }
