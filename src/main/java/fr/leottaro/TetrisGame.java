@@ -5,10 +5,13 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import javax.swing.JPanel;
@@ -30,7 +33,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     final int TILE_SIZE;
 
     private boolean hasStarted;
-    private Block[][] grid;
+    private ArrayList<Block> laidedBlocks;
     private Tetrominoes piece;
     private Tetrominoes holdedPiece;
     private Tetrominoes nextPiece;
@@ -59,7 +62,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
     private void Init() {
         hasStarted = false;
-        grid = new Block[GRID_HEIGHT][GRID_WIDTH];
+        laidedBlocks = new ArrayList<Block>(GRID_HEIGHT * GRID_WIDTH);
         piece = new Tetrominoes();
         holdedPiece = null;
         nextPiece = new Tetrominoes();
@@ -72,15 +75,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         totalScore = 0;
         totalLines = 0;
         level = 0;
-        storing = false;
         hasBestScore = false;
-        if (!Storage.createFile(fileScoreName, totalScore))
-            return;
-        if (!Storage.createFile(fileLinesName, totalLines))
-            return;
-        if (!Storage.createFile(fileLevelName, level))
-            return;
-        storing = true;
 
         CompletableFuture.runAsync(() -> {
             JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
@@ -92,6 +87,18 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             Storage.postJsonRequest("Tetris", String.format(dataFormat, "", Storage.read(fileScoreName),
                     Storage.read(fileLinesName), Storage.read(fileLevelName)));
         });
+
+        storing = false;
+        if (!Storage.createFile(fileScoreName, totalScore)) {
+            return;
+        }
+        if (!Storage.createFile(fileLinesName, totalLines)) {
+            return;
+        }
+        if (!Storage.createFile(fileLevelName, level)) {
+            return;
+        }
+        storing = true;
     }
 
     @Override
@@ -107,9 +114,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         if (!isPieceOk()) {
             piece.addY(-1);
             for (Block block : piece.getBlocks()) {
-                if (block.getY() >= 0)
-                    grid[block.getY()][block.getX()] = block;
-                else {
+                if (block.getY() >= 0) {
+                    laidedBlocks.add(block);
+                } else {
                     gameOver = true;
                     break;
                 }
@@ -132,23 +139,28 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             canhold = true;
         }
 
-        int lines = 0;
-        for (int y = GRID_HEIGHT - 1; y > 0; y--) {
-            if (isLineFull(y)) {
-                grid[y] = new Block[GRID_WIDTH];
-                grid[0] = new Block[GRID_WIDTH];
-                for (int i = y; i >= 1; i--) {
-                    for (int x = 0; x < GRID_WIDTH; x++) {
-                        grid[i][x] = grid[i - 1][x];
-                    }
+        Integer[] fullLines = fullLines();
+        if (fullLines.length != 0) {
+            int highestLine = fullLines[0];
+            int lowestLine = fullLines[0];
+            for (int i = 1; i < fullLines.length; i++) {
+                if (fullLines[i] > lowestLine) {
+                    lowestLine = fullLines[i];
+                } else if (fullLines[i] < highestLine) {
+                    highestLine = fullLines[i];
                 }
-                y = GRID_HEIGHT;
-                lines++;
+            }
+            for (int i = laidedBlocks.size() - 1; i >= 0; i--) {
+                if (laidedBlocks.get(i).getY() > lowestLine || laidedBlocks.get(i).getY() < highestLine) {
+                    laidedBlocks.get(i).setY(laidedBlocks.get(i).getY() + fullLines.length);
+                } else {
+                    laidedBlocks.remove(i);
+                }
             }
         }
 
-        totalLines += lines;
-        switch (lines) {
+        totalLines += fullLines.length;
+        switch (fullLines.length) {
             case 1:
                 totalScore += 40 * level;
                 break;
@@ -180,21 +192,32 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    private boolean isLineFull(int y) {
-        for (int x = 0; x < GRID_WIDTH; x++)
-            if (grid[y][x] == null)
-                return false;
-        return true;
+    private Integer[] fullLines() {
+        int[] count = new int[GRID_HEIGHT];
+        ArrayList<Integer> fullLines = new ArrayList<Integer>();
+        for (int i = 0; i < laidedBlocks.size(); i++) {
+            count[laidedBlocks.get(i).getY()] += 1;
+            if (count[laidedBlocks.get(i).getY()] == GRID_WIDTH) {
+                fullLines.add(laidedBlocks.get(i).getY());
+            }
+        }
+        Integer[] fullLinesArray = new Integer[fullLines.size()];
+        fullLinesArray = fullLines.toArray(fullLinesArray);
+        return fullLinesArray;
     }
 
     private boolean isPieceOk() {
         for (Block block : piece.getBlocks()) {
             int x = block.getX();
             int y = block.getY();
-            if (x < 0 || GRID_WIDTH <= x || GRID_HEIGHT <= y)
+            if (x < 0 || GRID_WIDTH <= x || GRID_HEIGHT <= y) {
                 return false;
-            if (y >= 0 && grid[y][x] != null)
-                return false;
+            }
+            for (Block laidedBlock : laidedBlocks) {
+                if (laidedBlock.getX() == x && laidedBlock.getY() == y) {
+                    return false;
+                }
+            }
         }
         return true;
     }
@@ -210,42 +233,43 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
         // Draw laided pieces
-        for (int y = 0; y < GRID_HEIGHT; y++) {
-            for (int x = 0; x < GRID_WIDTH; x++) {
-                if (grid[y][x] == null)
-                    g.setColor(Color.BLACK);
-                else
-                    g.setColor(grid[y][x].getColor());
-                g.fillRect((x + 1) * TILE_SIZE, (y + 1) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            }
+        Rectangle frameRect = new Rectangle(1, 1, GRID_WIDTH, GRID_HEIGHT);
+        for (Block block : laidedBlocks) {
+            drawBlock(g, 1, 1, block, true, frameRect);
         }
 
         // draw controlled piece
         if (!gameOver) {
-            drawPiece(g, 1, 1, piece, true);
+            drawPiece(g, 1, 1, piece, true, frameRect);
+
+            // draw preview
             int originalY = piece.getY();
-            while (isPieceOk())
+            while (isPieceOk()) {
                 piece.addY(1);
+            }
             piece.addY(-1);
-            drawPiece(g, 1, 1, piece, false);
-            while (piece.getY() != originalY)
+            drawPiece(g, 1, 1, piece, false, frameRect);
+            while (piece.getY() != originalY) {
                 piece.addY(-1);
+            }
         }
 
         // draw holded piece
+        frameRect = new Rectangle(12, 2, 4, 2);
         if (holdedPiece != null)
-            drawPiece(g, 9, 3, holdedPiece, true);
+            drawPiece(g, 9, 3, holdedPiece, true, frameRect);
 
         // draw next piece
-        drawPiece(g, 9, 7, nextPiece, true);
+        frameRect = new Rectangle(12, 6, 4, 2);
+        drawPiece(g, 9, 7, nextPiece, true, frameRect);
 
-        // draw playing containers
+        // draw game containers
         g.setColor(Color.GRAY);
         drawGrid(g, TILE_SIZE, TILE_SIZE * 11, TILE_SIZE, TILE_SIZE * 21); // playfield
         drawGrid(g, TILE_SIZE * 12, TILE_SIZE * 16, TILE_SIZE * 2, TILE_SIZE * 4); // holded piece
         drawGrid(g, TILE_SIZE * 12, TILE_SIZE * 16, TILE_SIZE * 6, TILE_SIZE * 8); // next piece
 
-        // draw playing texts
+        // draw game texts
         g.setColor(Color.WHITE);
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2 / 3));
         drawCenteredString(g, "Holded:", TILE_SIZE * 14, TILE_SIZE * 1.5);
@@ -305,25 +329,61 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 (int) y - metrics.getHeight() / 2 + metrics.getAscent());
     }
 
+    private void drawBlock(Graphics g, int offsetX, int offsetY, Block block, boolean filled) {
+        Color color = block.getColor();
+        int x = (offsetX + block.getX()) * TILE_SIZE;
+        int y = (offsetY + block.getY()) * TILE_SIZE;
+        if (filled) {
+            int centeredX = x + TILE_SIZE / 2;
+            int centeredY = y + TILE_SIZE / 2;
+            g.setColor(color.brighter().brighter());
+            g.fillPolygon(new Polygon(new int[] { centeredX, x, x + TILE_SIZE }, new int[] { centeredY, y, y }, 3));
+            g.setColor(color.brighter());
+            g.fillPolygon(new Polygon(new int[] { centeredX, x, x }, new int[] { centeredY, y, y + TILE_SIZE }, 3));
+            g.setColor(color.darker());
+            g.fillPolygon(new Polygon(new int[] { centeredX, x + TILE_SIZE, x + TILE_SIZE },
+                    new int[] { centeredY, y + TILE_SIZE, y }, 3));
+            g.setColor(color.darker().darker());
+            g.fillPolygon(new Polygon(new int[] { centeredX, x + TILE_SIZE, x },
+                    new int[] { centeredY, y + TILE_SIZE, y + TILE_SIZE }, 3));
+            g.setColor(color);
+            g.fillRect(x + TILE_SIZE / 4, y + TILE_SIZE / 4, TILE_SIZE / 2, TILE_SIZE / 2);
+        } else
+            g.drawRoundRect(x + 1, y + 1, TILE_SIZE - 2, TILE_SIZE - 2, TILE_SIZE / 10, TILE_SIZE / 10);
+    }
+
     private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece, boolean filled) {
         for (Block block : piece.getBlocks()) {
-            int x = (block.getX() + topLeftX) * TILE_SIZE;
-            int y = (block.getY() + topLeftY) * TILE_SIZE;
-            if (x >= TILE_SIZE && y >= TILE_SIZE && x <= WIDTH - TILE_SIZE && y <= HEIGHT - TILE_SIZE) {
-                g.setColor(block.getColor());
-                if (filled)
-                    g.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-                else
-                    g.drawRoundRect(x + 1, y + 1, TILE_SIZE - 2, TILE_SIZE - 2, TILE_SIZE / 10, TILE_SIZE / 10);
-            }
+            drawBlock(g, topLeftX, topLeftY, block, filled);
+        }
+    }
+
+    private void drawBlock(Graphics g, int offsetX, int offsetY, Block block, boolean filled, Rectangle frameRect) {
+        int x = offsetX + block.getX();
+        int y = offsetY + block.getY();
+        if (x < frameRect.getMinX() || x >= frameRect.getMaxX()) {
+            return;
+        }
+        if (y < frameRect.getMinY() || y >= frameRect.getMaxY()) {
+            return;
+        }
+        drawBlock(g, offsetX, offsetY, block, filled);
+    }
+
+    private void drawPiece(Graphics g, int offsetX, int offsetY, Tetrominoes piece, boolean filled,
+            Rectangle frameRect) {
+        for (Block block : piece.getBlocks()) {
+            drawBlock(g, offsetX, offsetY, block, filled, frameRect);
         }
     }
 
     private void drawGrid(Graphics g, int startX, int endX, int startY, int endY) {
-        for (int x = startX; x <= endX; x += TILE_SIZE)
+        for (int x = startX; x <= endX; x += TILE_SIZE) {
             g.drawLine(x, startY, x, endY);
-        for (int y = startY; y <= endY; y += TILE_SIZE)
+        }
+        for (int y = startY; y <= endY; y += TILE_SIZE) {
             g.drawLine(startX, y, endX, y);
+        }
     }
 
     @Override
