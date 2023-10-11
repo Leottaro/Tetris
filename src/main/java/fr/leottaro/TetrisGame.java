@@ -151,10 +151,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 }
             }
             for (int i = laidedBlocks.size() - 1; i >= 0; i--) {
-                if (laidedBlocks.get(i).getY() > lowestLine || laidedBlocks.get(i).getY() < highestLine) {
-                    laidedBlocks.get(i).setY(laidedBlocks.get(i).getY() + fullLines.length);
-                } else {
-                    laidedBlocks.remove(i);
+                if (laidedBlocks.get(i).getY() <= lowestLine) {
+                    if (laidedBlocks.get(i).getY() >= highestLine) {
+                        laidedBlocks.remove(i);
+                    } else {
+                        laidedBlocks.get(i).setY(laidedBlocks.get(i).getY() + fullLines.length);
+                    }
                 }
             }
         }
@@ -404,6 +406,25 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             return;
         }
         switch (e.getKeyCode()) {
+            case 37: // LEFT
+                piece.addX(-1);
+                if (!isPieceOk())
+                    piece.addX(1);
+                repaint();
+                break;
+            case 39: // RIGHT
+                piece.addX(1);
+                if (!isPieceOk())
+                    piece.addX(-1);
+                repaint();
+                break;
+            case 40: // DOWN
+            case 83: // S
+                if (gameTimer.getDelay() == timerDelay) {
+                    gameTimer.setDelay(fastTimerDelay);
+                    gameTimer.start();
+                }
+                break;
             case 38: // UP
             case 88: // X
                 piece.rotateClock();
@@ -411,17 +432,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     piece.rotateAntiClock();
                 repaint();
                 break;
-            case 32: // SPACE
-                int originalY = piece.getY();
-                while (isPieceOk()) {
-                    piece.addY(1);
-                }
-                piece.addY(-1);
-                if (piece.getY() != originalY) {
-                    gameTimer.stop();
-                    gameTimer.start();
-                    repaint();
-                }
+            case 157: // Command
+            case 17: // Control
+                piece.rotateAntiClock();
+                if (!isPieceOk())
+                    piece.rotateClock();
+                repaint();
                 break;
             case 16: // SHIFT
             case 67: // C
@@ -438,35 +454,21 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 }
                 repaint();
                 break;
-            case 157: // Command
-            case 17: // Control
-                piece.rotateAntiClock();
-                if (!isPieceOk())
-                    piece.rotateClock();
-                repaint();
+            case 32: // SPACE
+                int originalY = piece.getY();
+                while (isPieceOk()) {
+                    piece.addY(1);
+                }
+                piece.addY(-1);
+                if (piece.getY() != originalY) {
+                    gameTimer.stop();
+                    gameTimer.start();
+                    repaint();
+                }
                 break;
             case 27: // ESCAPE
                 pause();
                 repaint();
-                break;
-            case 37: // LEFT
-                piece.addX(-1);
-                if (!isPieceOk())
-                    piece.addX(1);
-                repaint();
-                break;
-            case 39: // RIGHT
-                piece.addX(1);
-                if (!isPieceOk())
-                    piece.addX(-1);
-                repaint();
-                break;
-            case 83: // S
-            case 40: // DOWN
-                if (gameTimer.getDelay() == timerDelay) {
-                    gameTimer.setDelay(fastTimerDelay);
-                    gameTimer.start();
-                }
                 break;
             default:
                 break;
