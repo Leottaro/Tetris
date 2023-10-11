@@ -76,18 +76,6 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         totalLines = 0;
         level = 0;
         hasBestScore = false;
-
-        CompletableFuture.runAsync(() -> {
-            JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
-            if (data != null) {
-                Storage.write(fileScoreName, data.get("Score").getAsInt());
-                Storage.write(fileLinesName, data.get("Lines").getAsInt());
-                Storage.write(fileLevelName, data.get("Level").getAsInt());
-            }
-            Storage.postJsonRequest("Tetris", String.format(dataFormat, "", Storage.read(fileScoreName),
-                    Storage.read(fileLinesName), Storage.read(fileLevelName)));
-        });
-
         storing = false;
         if (!Storage.createFile(fileScoreName, totalScore)) {
             return;
@@ -99,6 +87,34 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             return;
         }
         storing = true;
+
+        localServerSync();
+    }
+
+    private void localServerSync() {
+        CompletableFuture.runAsync(() -> {
+            JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
+            int serverScore = 0;
+            int serverLines = 0;
+            int serverLevel = 0;
+            if (data != null) {
+                serverScore = data.get("Score").getAsInt();
+                serverLines = data.get("Lines").getAsInt();
+                serverLevel = data.get("Level").getAsInt();
+            }
+
+            int localScore = Storage.read(fileScoreName);
+            int localLines = Storage.read(fileLinesName);
+            int localLevel = Storage.read(fileLevelName);
+
+            if (localScore > serverScore) {
+                Storage.postJsonRequest("Tetris", String.format(dataFormat, "", localScore, localLines, localLevel));
+            } else if (localScore < serverScore) {
+                Storage.write(fileScoreName, serverScore);
+                Storage.write(fileLinesName, serverLines);
+                Storage.write(fileLevelName, serverLevel);
+            }
+        });
     }
 
     @Override
