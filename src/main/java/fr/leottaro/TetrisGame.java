@@ -136,7 +136,18 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     gameOver = true;
                     break;
                 }
+                // if (block.getY() == 1 && (block.getX() == 5 || block.getX() == 4)) {
+                //     gameOver = true;
+                // }
             }
+            piece = nextPiece;
+            nextPiece = new Tetrominoes();
+            canhold = true;
+            
+            if (!isPieceOk()) {
+                gameOver = true;
+            }
+
             if (gameOver) {
                 canhold = false;
                 pause();
@@ -150,29 +161,37 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 }
                 return;
             }
-            piece = nextPiece;
-            nextPiece = new Tetrominoes();
-            canhold = true;
         }
 
         Integer[] fullLines = fullLines();
         if (fullLines.length != 0) {
             int highestLine = fullLines[0];
             int lowestLine = fullLines[0];
-            for (int i = 1; i < fullLines.length; i++) {
-                if (fullLines[i] > lowestLine) {
-                    lowestLine = fullLines[i];
-                } else if (fullLines[i] < highestLine) {
-                    highestLine = fullLines[i];
+            for (int y = 0; y < fullLines.length; y++) {
+                if (fullLines[y] > lowestLine) {
+                    lowestLine = fullLines[y];
+                } else if (fullLines[y] < highestLine) {
+                    highestLine = fullLines[y];
+                }
+                for (int i = laidedBlocks.size() - 1; i >= 0; i--) {
+                    if (laidedBlocks.get(i).getY() == fullLines[y]) {
+                        laidedBlocks.remove(i);
+                    }
                 }
             }
-            for (int i = laidedBlocks.size() - 1; i >= 0; i--) {
-                if (laidedBlocks.get(i).getY() <= lowestLine) {
-                    if (laidedBlocks.get(i).getY() >= highestLine) {
-                        laidedBlocks.remove(i);
+            for (Block block : laidedBlocks) {
+                if (block.getY() < lowestLine) {
+                    if (block.getY() > highestLine) {
+                        block.setY(2 * block.getY() - highestLine);
                     } else {
-                        laidedBlocks.get(i).setY(laidedBlocks.get(i).getY() + fullLines.length);
+                        block.setY(block.getY() + fullLines.length);
                     }
+                }
+            }
+            for (int i = 0; i < laidedBlocks.size(); i++) {
+                if (laidedBlocks.get(i).getY() >= GRID_HEIGHT) {
+                    System.out.format("problème: Block(%d, %d) trouvé\n", laidedBlocks.get(i).getX(),
+                            laidedBlocks.get(i).getY());
                 }
             }
         }
