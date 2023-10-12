@@ -137,13 +137,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     break;
                 }
                 // if (block.getY() == 1 && (block.getX() == 5 || block.getX() == 4)) {
-                //     gameOver = true;
+                // gameOver = true;
                 // }
             }
             piece = nextPiece;
             nextPiece = new Tetrominoes();
             canhold = true;
-            
+
             if (!isPieceOk()) {
                 gameOver = true;
             }
@@ -481,7 +481,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 canhold = false;
                 if (holdedPiece == null) {
                     holdedPiece = piece.getReseted();
-                    piece = new Tetrominoes();
+                    piece = nextPiece;
+                    nextPiece = new Tetrominoes();
                 } else {
                     Tetrominoes temp = holdedPiece;
                     holdedPiece = piece.getReseted();
@@ -490,6 +491,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 repaint();
                 break;
             case 32: // SPACE
+            case 10: // ENTER
                 int originalY = piece.getY();
                 while (isPieceOk()) {
                     piece.addY(1);
@@ -497,6 +499,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 piece.addY(-1);
                 if (piece.getY() != originalY) {
                     gameTimer.stop();
+                    tick();
                     gameTimer.start();
                     repaint();
                 }
