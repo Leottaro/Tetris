@@ -6,6 +6,8 @@ import java.util.concurrent.CompletableFuture;
 import com.google.gson.JsonObject;
 
 public class TetrisGame {
+    final static int[] DELAY_PER_LEVEL = new int[] { 800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67,
+            67, 67, 50, 50, 50, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 17 };
     private static final String dataFormat = "{\"Pseudo\":\"%s\",\"Score\":%d,\"Lines\":%d,\"Level\":%d}";
     private static final String fileScoreName = "tetris_score";
     private static final String fileLinesName = "tetris_lines";
@@ -85,7 +87,7 @@ public class TetrisGame {
         if (gameOver) {
             return;
         }
-        
+
         piece.addY(1);
         if (!isPieceOk()) {
             piece.addY(-1);
@@ -147,7 +149,7 @@ public class TetrisGame {
                 }
             }
 
-            if (level < 15 && totalLines >= 10 * level) {
+            if (level < DELAY_PER_LEVEL.length && totalLines >= 10 * level) {
                 level++;
             }
         }

@@ -45,7 +45,7 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
         game = new TetrisGame();
         gameLevel = game.getLevel();
         hasStarted = false;
-        timerDelay = 500;
+        timerDelay = TetrisGame.DELAY_PER_LEVEL[0];
         fastTimerDelay = timerDelay / 5;
         gameTimer = new Timer(timerDelay, this);
         pause();
@@ -62,7 +62,7 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
 
         if (gameLevel != game.getLevel()) {
             gameLevel = game.getLevel();
-            timerDelay = 500 / gameLevel;
+            timerDelay = TetrisGame.DELAY_PER_LEVEL[gameLevel];
             fastTimerDelay = timerDelay / 5;
             gameTimer.setDelay(timerDelay);
         }
