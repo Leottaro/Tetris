@@ -173,6 +173,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     if (line == fullLine) {
                         isFull = true;
                         matchLines[line] = -1;
+                        break;
                     }
                 }
                 if (!isFull) {
