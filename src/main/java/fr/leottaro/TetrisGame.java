@@ -136,9 +136,6 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     gameOver = true;
                     break;
                 }
-                // if (block.getY() == 1 && (block.getX() == 5 || block.getX() == 4)) {
-                // gameOver = true;
-                // }
             }
             piece = nextPiece;
             nextPiece = new Tetrominoes();
@@ -153,9 +150,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 pause();
                 gameOver = true;
                 if (hasBestScore) {
+                    String data = String.format(dataFormat, "", Storage.read(fileScoreName),
+                            Storage.read(fileLinesName), Storage.read(fileLevelName));
                     CompletableFuture.runAsync(() -> {
-                        String data = String.format(dataFormat, "", Storage.read(fileScoreName),
-                                Storage.read(fileLinesName), Storage.read(fileLevelName));
                         Storage.postJsonRequest("Tetris", data);
                     });
                 }
@@ -163,7 +160,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        Integer[] fullLines = fullLines();
+        int[] fullLines = fullLines();
         if (fullLines.length != 0) {
             int[] matchLines = new int[GRID_HEIGHT];
             int fixedLine = GRID_HEIGHT - 1;
@@ -225,18 +222,25 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    private Integer[] fullLines() {
-        int[] count = new int[GRID_HEIGHT];
-        ArrayList<Integer> fullLines = new ArrayList<Integer>();
+    private int[] fullLines() {
+        int[] lineBlockCount = new int[GRID_HEIGHT];
+        int fullLinesCount = 0;
         for (int i = 0; i < laidedBlocks.size(); i++) {
-            count[laidedBlocks.get(i).getY()] += 1;
-            if (count[laidedBlocks.get(i).getY()] == GRID_WIDTH) {
-                fullLines.add(laidedBlocks.get(i).getY());
+            lineBlockCount[laidedBlocks.get(i).getY()] += 1;
+            if (lineBlockCount[laidedBlocks.get(i).getY()] == GRID_WIDTH) {
+                fullLinesCount++;
             }
         }
-        Integer[] fullLinesArray = new Integer[fullLines.size()];
-        fullLinesArray = fullLines.toArray(fullLinesArray);
-        return fullLinesArray;
+
+        int[] fullLines = new int[fullLinesCount];
+        for (int line = GRID_HEIGHT - 1; line >= 0; line--) {
+            if (lineBlockCount[line] == GRID_WIDTH) {
+                fullLinesCount--;
+                fullLines[fullLinesCount] = line;
+            }
+        }
+
+        return fullLines;
     }
 
     private boolean isPieceOk() {
@@ -314,7 +318,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
         // draw information containers
         g.setColor(Color.GRAY);
-        g.drawRect(TILE_SIZE * 12, TILE_SIZE * 11, TILE_SIZE * 4, TILE_SIZE); // HighScore string
+        if (storing) {
+            g.drawRect(TILE_SIZE * 12, TILE_SIZE * 11, TILE_SIZE * 4, TILE_SIZE); // HighScore string
+        }
         g.drawRect(TILE_SIZE * 12, TILE_SIZE * 14, TILE_SIZE * 4, TILE_SIZE); // Score string
         g.drawRect(TILE_SIZE * 12, TILE_SIZE * 17, TILE_SIZE * 4, TILE_SIZE); // Lines string
         g.drawRect(TILE_SIZE * 12, TILE_SIZE * 20, TILE_SIZE * 4, TILE_SIZE); // Level string
@@ -322,8 +328,10 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         // draw information texts
         g.setColor(Color.WHITE);
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2 / 3));
-        drawCenteredString(g, "High score:", TILE_SIZE * 14, TILE_SIZE * 10.5);
-        drawCenteredString(g, String.format("%d", Storage.read(fileScoreName)), TILE_SIZE * 14, TILE_SIZE * 11.5);
+        if (storing) {
+            drawCenteredString(g, "High score:", TILE_SIZE * 14, TILE_SIZE * 10.5);
+            drawCenteredString(g, String.format("%d", Storage.read(fileScoreName)), TILE_SIZE * 14, TILE_SIZE * 11.5);
+        }
         drawCenteredString(g, "Score:", TILE_SIZE * 14, TILE_SIZE * 13.5);
         drawCenteredString(g, String.format("%d", totalScore), TILE_SIZE * 14, TILE_SIZE * 14.5);
         drawCenteredString(g, "Lines:", TILE_SIZE * 14, TILE_SIZE * 16.5);
