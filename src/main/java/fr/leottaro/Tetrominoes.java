@@ -69,19 +69,21 @@ public class Tetrominoes {
 
     public void rotateClock() {
         for (Block block : blocks) {
-            if (isCentered)
+            if (isCentered) {
                 block.setCoords(-block.getY(), block.getX());
-            else
+            } else {
                 block.setCoords(-block.getY() - 1, block.getX());
+            }
         }
     }
 
     public void rotateAntiClock() {
         for (Block block : blocks) {
-            if (isCentered)
+            if (isCentered) {
                 block.setCoords(block.getY(), -block.getX());
-            else
+            } else {
                 block.setCoords(block.getY(), -block.getX() - 1);
+            }
         }
     }
 
@@ -95,8 +97,9 @@ public class Tetrominoes {
 
     public Block[] getBlocks() {
         Block[] blocksCopy = new Block[4];
-        for (int i = 0; i < blocks.length; i++)
+        for (int i = 0; i < blocks.length; i++) {
             blocksCopy[i] = blocks[i].addedCoords(x, y);
+        }
         return blocksCopy;
     }
 
@@ -114,6 +117,16 @@ public class Tetrominoes {
 
     public void addY(int vel) {
         y += vel;
+    }
+
+    public Tetrominoes clone() {
+        Tetrominoes clone = new Tetrominoes(type);
+        for (int i = 0; i < blocks.length; i++) {
+            clone.blocks[i] = blocks[i].clone();
+        }
+        clone.x = x;
+        clone.y = y;
+        return clone;
     }
 
     public String toString() {

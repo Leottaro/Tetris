@@ -19,7 +19,7 @@ import com.google.gson.JsonParser;
 public class Storage {
     private static final String key = String.format("\"%s%s%s\"", System.getProperty("os.arch"),
             System.getProperty("os.name"), System.getProperty("user.home"));
-    private static final String baseUrl = "localhost:9090";
+    private static final String baseUrl = "localhost:9090/";
 
     private static String storagePath() {
         String OS = System.getProperty("os.name").toLowerCase();
@@ -31,7 +31,7 @@ public class Storage {
             return String.format("%s/Library/Application Support/%s/", System.getProperty("user.home"), ".leottaro");
         } else if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
             // Linux
-            return String.format("%s/var/lib/%s/", System.getProperty("user.home"), ".leottaro");
+            return String.format("/usr/tmp/%s/", System.getProperty("user.home"), ".leottaro");
         } else {
             return null;
         }
@@ -90,11 +90,13 @@ public class Storage {
 
     public static boolean createFile(String filename, int n) {
         Path path = Paths.get(storagePath() + filename);
-        if (path == null)
+        if (path == null) {
             return false;
+        }
         try {
-            if (!Files.exists(path.getParent()))
+            if (!Files.exists(path.getParent())) {
                 Files.createDirectory(path.getParent());
+            }
             if (!path.toFile().canRead()) {
                 path.toFile().createNewFile();
                 write(filename, n);
@@ -122,8 +124,9 @@ public class Storage {
             BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String output = "";
             String line = "";
-            while ((line = br.readLine()) != null)
+            while ((line = br.readLine()) != null) {
                 output += line;
+            }
 
             con.disconnect();
             return JsonParser.parseString(output).getAsJsonObject();
@@ -145,8 +148,9 @@ public class Storage {
     public static JsonObject getJsonObject(String game, String... options) {
         try {
             String url = baseUrl + game + "/getData?";
-            for (String option : options)
+            for (String option : options) {
                 url += option + "&";
+            }
             return getJsonRequest(new URL(url));
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -155,7 +159,8 @@ public class Storage {
     }
 
     public static void postJsonRequest(String game, String jsonData) {
-        String finalData = String.format("{\"userName\":\"%s\",\"Data\":%s}", System.getProperty("user.name"), jsonData);
+        String finalData = String.format("{\"userName\":\"%s\",\"Data\":%s}", System.getProperty("user.name"),
+                jsonData);
         try {
             URL url = new URL(baseUrl + game + "/postData");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -168,9 +173,10 @@ public class Storage {
             output.flush();
             output.close();
 
-            if (connection.getResponseCode() != 200)
+            if (connection.getResponseCode() != 200) {
                 System.out.println(connection.getResponseMessage());
-            
+            }
+
             connection.disconnect();
         } catch (Exception e) {
             System.out.println(e.getMessage());

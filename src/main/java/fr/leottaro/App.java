@@ -9,9 +9,10 @@ public class App {
     public static void main(String[] args) throws Exception {
         int boardWidth = (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() * screenPart);
         int boardHeight = (int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() * screenPart);
-        int tileSize = Math.min(boardWidth / TetrisGame.FRAME_GRID_WIDTH, boardHeight / TetrisGame.FRAME_GRID_HEIGHT);
-        boardWidth = tileSize * TetrisGame.FRAME_GRID_WIDTH;
-        boardHeight = tileSize * TetrisGame.FRAME_GRID_HEIGHT;
+        int tileSize = Math.min(boardWidth / TetrisGameDisplay.FRAME_GRID_WIDTH,
+                boardHeight / TetrisGameDisplay.FRAME_GRID_HEIGHT);
+        boardWidth = tileSize * TetrisGameDisplay.FRAME_GRID_WIDTH;
+        boardHeight = tileSize * TetrisGameDisplay.FRAME_GRID_HEIGHT;
 
         JFrame frame = new JFrame("Tetris");
         frame.setVisible(true);
@@ -20,7 +21,7 @@ public class App {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        TetrisGame Game = new TetrisGame(boardWidth, boardHeight, tileSize);
+        TetrisGameDisplay Game = new TetrisGameDisplay(boardWidth, boardHeight, tileSize);
         frame.add(Game);
         frame.pack();
         Game.requestFocus();

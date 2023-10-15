@@ -58,4 +58,8 @@ public class Block {
     public Block addedCoords(int x, int y) {
         return new Block(this.x + x, this.y + y, this.color);
     }
+
+    public Block clone() {
+        return new Block(x, y, color);
+    }
 }

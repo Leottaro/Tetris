@@ -23,8 +23,9 @@ public enum TetroType {
     }
 
     public static TetroType getRandom() {
-        if (tetroI >= tetroSize)
+        if (tetroI >= tetroSize) {
             genList();
+        }
         tetroI++;
         return tetroList[tetroI - 1];
     }
