@@ -165,33 +165,28 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
         Integer[] fullLines = fullLines();
         if (fullLines.length != 0) {
-            int highestLine = fullLines[0];
-            int lowestLine = fullLines[0];
-            for (int y = 0; y < fullLines.length; y++) {
-                if (fullLines[y] > lowestLine) {
-                    lowestLine = fullLines[y];
-                } else if (fullLines[y] < highestLine) {
-                    highestLine = fullLines[y];
-                }
-                for (int i = laidedBlocks.size() - 1; i >= 0; i--) {
-                    if (laidedBlocks.get(i).getY() == fullLines[y]) {
-                        laidedBlocks.remove(i);
+            int[] matchLines = new int[GRID_HEIGHT];
+            int fixedLine = GRID_HEIGHT - 1;
+            for (int line = GRID_HEIGHT - 1; line >= 0; line--) {
+                boolean isFull = false;
+                for (int fullLine : fullLines) {
+                    if (line == fullLine) {
+                        isFull = true;
+                        matchLines[line] = -1;
                     }
                 }
-            }
-            for (Block block : laidedBlocks) {
-                if (block.getY() < lowestLine) {
-                    if (block.getY() > highestLine) {
-                        block.setY(2 * block.getY() - highestLine);
-                    } else {
-                        block.setY(block.getY() + fullLines.length);
-                    }
+                if (!isFull) {
+                    matchLines[line] = fixedLine;
+                    fixedLine--;
                 }
             }
-            for (int i = 0; i < laidedBlocks.size(); i++) {
-                if (laidedBlocks.get(i).getY() >= GRID_HEIGHT) {
-                    System.out.format("problème: Block(%d, %d) trouvé\n", laidedBlocks.get(i).getX(),
-                            laidedBlocks.get(i).getY());
+
+            for (int i = laidedBlocks.size() - 1; i >= 0; i--) {
+                int y = laidedBlocks.get(i).getY();
+                if (matchLines[y] == -1) {
+                    laidedBlocks.remove(i);
+                } else {
+                    laidedBlocks.get(i).setY(matchLines[y]);
                 }
             }
         }
