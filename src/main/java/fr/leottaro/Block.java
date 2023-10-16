@@ -4,11 +4,10 @@ import java.awt.Color;
 
 public class Block {
     private int x, y;
-    private Color color = Color.WHITE;
+    private Color color;
 
     public Block(int x, int y) {
-        this.x = x;
-        this.y = y;
+        this(x, y, Color.WHITE);
     }
 
     public Block(int x, int y, Color c) {

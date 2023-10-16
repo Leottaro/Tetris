@@ -78,6 +78,8 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
     }
 
     public void draw(Graphics g) {
+        System.out.print(game.toString());
+
         // Draw background
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);

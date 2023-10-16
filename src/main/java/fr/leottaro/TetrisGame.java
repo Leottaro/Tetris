@@ -28,14 +28,10 @@ public class TetrisGame {
     private boolean hasBestScore;
 
     TetrisGame() {
-        Init(true);
+        this(true);
     }
 
     TetrisGame(boolean storing) {
-        Init(storing);
-    }
-
-    private void Init(boolean storing) {
         laidedBlocks = new Block[GRID_WIDTH * GRID_HEIGHT];
         laidedBlocksSize = 0;
         piece = new Tetrominoes();
