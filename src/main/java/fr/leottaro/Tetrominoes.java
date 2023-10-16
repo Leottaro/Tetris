@@ -74,6 +74,16 @@ public class Tetrominoes {
         y += vel;
     }
 
+    @Override
+    public String toString() {
+        String s = String.format("Tetrominos: [\n\tx: %d\n\ty: %d\n\tisCentered:%b\n\tBlocks: {", x, y, isCentered);
+        for (Block block : blocks) {
+            s += String.format("\n\t\t(%d, %d)", block.getX(), block.getY());
+        }
+        return s + "\n\t}\n]";
+    }
+
+    @Override
     public Tetrominoes clone() {
         Tetrominoes clone = new Tetrominoes(type);
         for (int i = 0; i < blocks.length; i++) {
@@ -82,13 +92,5 @@ public class Tetrominoes {
         clone.x = x;
         clone.y = y;
         return clone;
-    }
-
-    public String toString() {
-        String s = String.format("Tetrominos: [\n\tx: %d\n\ty: %d\n\tisCentered:%b\n\tBlocks: {", x, y, isCentered);
-        for (Block block : blocks) {
-            s += String.format("\n\t\t(%d, %d)", block.getX(), block.getY());
-        }
-        return s + "\n\t}\n]";
     }
 }

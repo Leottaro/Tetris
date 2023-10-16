@@ -356,4 +356,53 @@ public class TetrisGame {
     public boolean isStoring() {
         return storing;
     }
+
+    @Override
+    public String toString() {
+        char[][] chars = new char[GRID_HEIGHT][GRID_WIDTH];
+        for (int y = 0; y < GRID_HEIGHT; y++) {
+            for (int x = 0; x < GRID_WIDTH; x++) {
+                chars[y][x] = ' ';
+            }
+        }
+
+        for (int i = 0; i < laidedBlocksSize; i++) {
+            if (0 <= laidedBlocks[i].getY() && laidedBlocks[i].getY() <= GRID_HEIGHT && 0 <= laidedBlocks[i].getX()
+                    && laidedBlocks[i].getX() <= GRID_WIDTH) {
+                chars[laidedBlocks[i].getY()][laidedBlocks[i].getX()] = '@';
+            }
+        }
+        for (Block block : piece.getBlocks()) {
+            if (0 <= block.getY() && block.getY() <= GRID_HEIGHT && 0 <= block.getX() && block.getX() <= GRID_WIDTH) {
+                chars[block.getY()][block.getX()] = '#';
+            }
+        }
+
+        String game = "\n";
+
+        game += "+-";
+        for (int x = 1; x < chars.length - 1; x++) {
+            game += '-';
+        }
+        game += "-+\n";
+
+        for (int y = 0; y < GRID_HEIGHT; y++) {
+            game += "|";
+            for (int x = 0; x < GRID_WIDTH; x++) {
+                game += String.format(" %c", chars[y][x]);
+            }
+            game += "|\n";
+        }
+
+        game += "+-";
+        for (int x = 1; x < chars.length - 1; x++) {
+            game += '-';
+        }
+        game += "-+\n";
+
+        game += String.format("Highscore: %d \nScore: %d \nLines: %d \nLevel: %d\n", getHighScore(), totalScore,
+                totalLines, level);
+
+        return game;
+    }
 }

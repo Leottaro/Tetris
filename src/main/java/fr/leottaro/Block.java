@@ -16,10 +16,6 @@ public class Block {
         this.color = c;
     }
 
-    public String toString() {
-        return String.format("(%d, %d)", x, y);
-    }
-
     public int getX() {
         return x;
     }
@@ -58,6 +54,12 @@ public class Block {
         return new Block(this.x + x, this.y + y, this.color);
     }
 
+    @Override
+    public String toString() {
+        return String.format("(%d, %d)", x, y);
+    }
+
+    @Override
     public Block clone() {
         return new Block(x, y, color);
     }
