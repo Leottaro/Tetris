@@ -5,15 +5,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>fr.leottaro</groupId>
-  <artifactId>tetris</artifactId>
-  <version>1.0</version>
+  <artifactId>Tetris</artifactId>
+  <version>2.2</version>
 
   <name>Tetris</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
 
   <dependencies>
@@ -50,6 +50,14 @@
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.0.2</version>
+          <configuration>
+            <archive>
+              <manifest>
+                <addClasspath>true</addClasspath>
+                <mainClass>fr.leottaro.Tetris</mainClass>
+              </manifest>
+            </archive>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>

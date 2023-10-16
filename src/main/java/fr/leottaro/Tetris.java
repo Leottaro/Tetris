@@ -3,7 +3,7 @@ package fr.leottaro;
 import java.awt.Toolkit;
 import javax.swing.JFrame;
 
-public class App {
+public class Tetris {
     public static final double screenPart = 0.75;
 
     public static void main(String[] args) throws Exception {

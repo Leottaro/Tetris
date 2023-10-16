@@ -202,6 +202,7 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
             g.drawRoundRect(x + 1, y + 1, TILE_SIZE - 2, TILE_SIZE - 2, TILE_SIZE / 10, TILE_SIZE / 10);
     }
 
+    @SuppressWarnings("unused")
     private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece, boolean filled) {
         for (Block block : piece.getBlocks()) {
             drawBlock(g, topLeftX, topLeftY, block, filled);

@@ -301,6 +301,7 @@ public class TetrisGame {
 
     // Getters
 
+    @SuppressWarnings("unused")
     private Block[] getBlocks() {
         Block[] Blocks = new Block[laidedBlocksSize];
         for (int i = 0; i < laidedBlocksSize; i++) {
