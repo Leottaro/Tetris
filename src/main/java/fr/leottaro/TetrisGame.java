@@ -1,6 +1,5 @@
 package fr.leottaro;
 
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import com.google.gson.JsonObject;
@@ -15,7 +14,8 @@ public class TetrisGame {
     final static int GRID_WIDTH = 10;
     final static int GRID_HEIGHT = 20;
 
-    private ArrayList<Block> laidedBlocks;
+    private Block[] laidedBlocks;
+    private int laidedBlocksSize;
     private Tetrominoes piece;
     private Tetrominoes holdedPiece;
     private Tetrominoes nextPiece;
@@ -28,11 +28,16 @@ public class TetrisGame {
     private boolean hasBestScore;
 
     TetrisGame() {
-        Init();
+        Init(true);
     }
 
-    private void Init() {
-        laidedBlocks = new ArrayList<Block>(GRID_HEIGHT * GRID_WIDTH);
+    TetrisGame(boolean storing) {
+        Init(storing);
+    }
+
+    private void Init(boolean storing) {
+        laidedBlocks = new Block[GRID_WIDTH * GRID_HEIGHT];
+        laidedBlocksSize = 0;
         piece = new Tetrominoes();
         holdedPiece = null;
         nextPiece = new Tetrominoes();
@@ -42,19 +47,20 @@ public class TetrisGame {
         totalLines = 0;
         level = 0;
         hasBestScore = false;
-        storing = false;
-        if (!Storage.createFile(fileScoreName, totalScore)) {
-            return;
+        this.storing = false;
+        if (storing) {
+            if (!Storage.createFile(fileScoreName, totalScore)) {
+                return;
+            }
+            if (!Storage.createFile(fileLinesName, totalLines)) {
+                return;
+            }
+            if (!Storage.createFile(fileLevelName, level)) {
+                return;
+            }
+            this.storing = true;
+            localServerSync();
         }
-        if (!Storage.createFile(fileLinesName, totalLines)) {
-            return;
-        }
-        if (!Storage.createFile(fileLevelName, level)) {
-            return;
-        }
-        storing = true;
-
-        localServerSync();
     }
 
     private void localServerSync() {
@@ -93,7 +99,8 @@ public class TetrisGame {
             piece.addY(-1);
             for (Block block : piece.getBlocks()) {
                 if (block.getY() >= 0) {
-                    laidedBlocks.add(block);
+                    laidedBlocks[laidedBlocksSize] = block;
+                    laidedBlocksSize++;
                 } else {
                     gameOver = true;
                     break;
@@ -110,7 +117,7 @@ public class TetrisGame {
             if (gameOver) {
                 canhold = false;
                 gameOver = true;
-                if (hasBestScore) {
+                if (storing && hasBestScore) {
                     String data = String.format(dataFormat, "", Storage.read(fileScoreName),
                             Storage.read(fileLinesName), Storage.read(fileLevelName));
                     CompletableFuture.runAsync(() -> {
@@ -140,14 +147,15 @@ public class TetrisGame {
                 }
             }
 
-            for (int i = laidedBlocks.size() - 1; i >= 0; i--) {
-                int y = laidedBlocks.get(i).getY();
-                if (matchLines[y] == -1) {
-                    laidedBlocks.remove(i);
-                } else {
-                    laidedBlocks.get(i).setY(matchLines[y]);
+            int j = 0;
+            for (int i = 0; i < laidedBlocksSize; i++) {
+                laidedBlocks[i].setY(matchLines[laidedBlocks[i].getY()]);
+                if (laidedBlocks[i].getY() != -1) {
+                    laidedBlocks[j] = laidedBlocks[i];
+                    j++;
                 }
             }
+            laidedBlocksSize = j;
 
             if (level < DELAY_PER_LEVEL.length && totalLines >= 10 * level) {
                 level++;
@@ -183,9 +191,9 @@ public class TetrisGame {
     private int[] fullLines() {
         int[] lineBlockCount = new int[GRID_HEIGHT];
         int fullLinesCount = 0;
-        for (int i = 0; i < laidedBlocks.size(); i++) {
-            lineBlockCount[laidedBlocks.get(i).getY()] += 1;
-            if (lineBlockCount[laidedBlocks.get(i).getY()] == GRID_WIDTH) {
+        for (int i = 0; i < laidedBlocksSize; i++) {
+            lineBlockCount[laidedBlocks[i].getY()] += 1;
+            if (lineBlockCount[laidedBlocks[i].getY()] == GRID_WIDTH) {
                 fullLinesCount++;
             }
         }
@@ -208,8 +216,8 @@ public class TetrisGame {
             if (x < 0 || GRID_WIDTH <= x || GRID_HEIGHT <= y) {
                 return false;
             }
-            for (Block laidedBlock : laidedBlocks) {
-                if (laidedBlock.getX() == x && laidedBlock.getY() == y) {
+            for (int i = 0; i < laidedBlocksSize; i++) {
+                if (laidedBlocks[i].getX() == x && laidedBlocks[i].getY() == y) {
                     return false;
                 }
             }
@@ -293,12 +301,23 @@ public class TetrisGame {
 
     // Getters
 
-    public Block[] getLaidedBlocks() {
-        Block[] Blocks = new Block[laidedBlocks.size()];
-        for (int i = 0; i < Blocks.length; i++) {
-            Blocks[i] = laidedBlocks.get(i).clone();
+    private Block[] getBlocks() {
+        Block[] Blocks = new Block[laidedBlocksSize];
+        for (int i = 0; i < laidedBlocksSize; i++) {
+            Blocks[i] = laidedBlocks[i];
         }
         return Blocks;
+    }
+
+    public Block getBlock(int index) {
+        if (index < 0 || index >= laidedBlocksSize) {
+            return null;
+        }
+        return laidedBlocks[index];
+    }
+
+    public int getLaidedBlocksSize() {
+        return laidedBlocksSize;
     }
 
     public Tetrominoes getPiece() {

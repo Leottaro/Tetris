@@ -84,8 +84,8 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
 
         // Draw laided pieces
         Rectangle frameRect = new Rectangle(1, 1, TetrisGame.GRID_WIDTH, TetrisGame.GRID_HEIGHT);
-        for (Block block : game.getLaidedBlocks()) {
-            drawBlock(g, 1, 1, block, true, frameRect);
+        for (int i = 0; i < game.getLaidedBlocksSize(); i++) {
+            drawBlock(g, 1, 1, game.getBlock(i), true, frameRect);
         }
 
         // draw controlled piece
