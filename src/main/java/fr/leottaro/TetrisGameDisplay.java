@@ -279,6 +279,7 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
                 break;
             case 157: // Command
             case 17: // Control
+            case 90: // Z
                 if (game.rotatePieceAntiClock()) {
                     repaint();
                 }

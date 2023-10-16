@@ -1,5 +1,4 @@
 *.jar
-pom.xml
 .DS_Store
 
 .vscode
