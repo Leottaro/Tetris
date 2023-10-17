@@ -1,4 +1,4 @@
-package fr.leottaro;
+package fr.leottaro.tetris;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -372,9 +372,13 @@ public class TetrisGame {
                 chars[laidedBlocks[i].getY()][laidedBlocks[i].getX()] = '@';
             }
         }
-        for (Block block : piece.getBlocks()) {
-            if (0 <= block.getY() && block.getY() <= GRID_HEIGHT && 0 <= block.getX() && block.getX() <= GRID_WIDTH) {
-                chars[block.getY()][block.getX()] = '#';
+
+        if (!gameOver) {
+            for (Block block : piece.getBlocks()) {
+                if (0 <= block.getY() && block.getY() <= GRID_HEIGHT && 0 <= block.getX()
+                        && block.getX() <= GRID_WIDTH) {
+                    chars[block.getY()][block.getX()] = '#';
+                }
             }
         }
 
@@ -400,8 +404,12 @@ public class TetrisGame {
         }
         game += "-+\n";
 
-        game += String.format("Highscore: %d \nScore: %d \nLines: %d \nLevel: %d\n", getHighScore(), totalScore,
-                totalLines, level);
+        if (gameOver) {
+            game += String.format("GAME OVER ! \nHigh score: %d \nLast score: %d\n", getHighScore(), totalScore);
+        } else {
+            game += String.format("Highscore: %d \nScore: %d \nLines: %d \nLevel: %d", getHighScore(), totalScore,
+                    totalLines, level);
+        }
 
         return game;
     }

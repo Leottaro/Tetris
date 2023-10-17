@@ -1,4 +1,4 @@
-package fr.leottaro;
+package fr.leottaro.tetris;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -78,7 +78,9 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
     }
 
     public void draw(Graphics g) {
-        System.out.print(game.toString());
+        System.out.println("\033[H\033[2J\033[H");
+        System.out.flush();
+        System.out.println(game.toString());
 
         // Draw background
         g.setColor(Color.BLACK);
@@ -270,6 +272,8 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
             case 40: // DOWN
             case 83: // S
                 if (gameTimer.getDelay() == timerDelay) {
+                    tick();
+                    repaint();
                     gameTimer.setDelay(fastTimerDelay);
                     gameTimer.start();
                 }

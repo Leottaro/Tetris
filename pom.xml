@@ -6,7 +6,7 @@
 
   <groupId>fr.leottaro</groupId>
   <artifactId>Tetris</artifactId>
-  <version>2.3</version>
+  <version>2.4</version>
 
   <name>Tetris</name>
 
@@ -54,7 +54,7 @@
             <archive>
               <manifest>
                 <addClasspath>true</addClasspath>
-                <mainClass>fr.leottaro.Tetris</mainClass>
+                <mainClass>fr.leottaro.tetris.Tetris</mainClass>
               </manifest>
             </archive>
           </configuration>

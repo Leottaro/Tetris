@@ -1,4 +1,4 @@
-package fr.leottaro;
+package fr.leottaro.tetris;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

@@ -1,4 +1,4 @@
-package fr.leottaro;
+package fr.leottaro.tetris;
 
 public class Tetrominoes {
     private TetroType type;
