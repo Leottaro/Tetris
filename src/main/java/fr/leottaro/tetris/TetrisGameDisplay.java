@@ -16,12 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class TetrisGameDisplay extends JPanel implements ActionListener, KeyListener {
-    final static int FRAME_GRID_WIDTH = 17;
-    final static int FRAME_GRID_HEIGHT = 22;
-    final int WIDTH;
-    final int HEIGHT;
-    final int TILE_SIZE;
+    public final static int FRAME_GRID_WIDTH = 17;
+    public final static int FRAME_GRID_HEIGHT = 22;
 
+    public final int WIDTH;
+    public final int HEIGHT;
+    public final int TILE_SIZE;
     private TetrisGame game;
     private int gameLevel;
     private boolean hasStarted;

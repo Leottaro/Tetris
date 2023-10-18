@@ -1,11 +1,14 @@
 package fr.leottaro.tetris;
 
 public class Tetrominoes {
+    public static final int baseX = 5;
+    public static final int baseY = 0;
+
     private TetroType type;
     private Block[] blocks;
     private boolean isCentered; // if the rotation center is in the center of its block or in top left corner
-    private int x = 5;
-    private int y = 0;
+    private int x = baseX;
+    private int y = baseY;
 
     public Tetrominoes() {
         this(TetroType.getRandom());

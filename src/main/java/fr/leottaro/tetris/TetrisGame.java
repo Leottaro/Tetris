@@ -5,14 +5,14 @@ import java.util.concurrent.CompletableFuture;
 import com.google.gson.JsonObject;
 
 public class TetrisGame {
-    final static int[] DELAY_PER_LEVEL = new int[] { 800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67,
-            67, 67, 50, 50, 50, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 17 };
+    public static final int[] DELAY_PER_LEVEL = new int[] { 800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83,
+            83, 67, 67, 67, 50, 50, 50, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 17 };
+    public static final int GRID_WIDTH = 10;
+    public static final int GRID_HEIGHT = 20;
     private static final String dataFormat = "{\"Pseudo\":\"%s\",\"Score\":%d,\"Lines\":%d,\"Level\":%d}";
     private static final String fileScoreName = "tetris_score";
     private static final String fileLinesName = "tetris_lines";
     private static final String fileLevelName = "tetris_level";
-    final static int GRID_WIDTH = 10;
-    final static int GRID_HEIGHT = 20;
 
     private Block[] laidedBlocks;
     private int laidedBlocksSize;
@@ -27,11 +27,11 @@ public class TetrisGame {
     private boolean storing;
     private boolean hasBestScore;
 
-    TetrisGame() {
+    public TetrisGame() {
         this(true);
     }
 
-    TetrisGame(boolean storing) {
+    public TetrisGame(boolean storing) {
         laidedBlocks = new Block[GRID_WIDTH * GRID_HEIGHT];
         laidedBlocksSize = 0;
         piece = new Tetrominoes();
