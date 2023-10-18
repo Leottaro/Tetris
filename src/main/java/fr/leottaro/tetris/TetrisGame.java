@@ -21,11 +21,12 @@ public class TetrisGame {
     private Tetrominoes nextPiece;
     private boolean gameOver;
     private boolean canhold;
+    private int savedScore;
     private int totalScore;
     private int totalLines;
     private int level;
-    private boolean storing;
-    private boolean hasBestScore;
+    private boolean localStoring;
+    private boolean serverStoring;
 
     public TetrisGame() {
         this(true);
@@ -39,50 +40,60 @@ public class TetrisGame {
         this.nextPiece = new Tetrominoes();
         this.gameOver = false;
         this.canhold = true;
+        this.savedScore = -1;
         this.totalScore = 0;
         this.totalLines = 0;
         this.level = 0;
-        this.hasBestScore = false;
-        this.storing = false;
+        this.localStoring = false;
+        this.serverStoring = false;
+
         if (storing) {
-            if (!Storage.createFile(fileScoreName, totalScore)) {
-                return;
+            if (Storage.createFile(fileLinesName, totalLines) && Storage.createFile(fileLevelName, level)
+                    && Storage.createFile(fileScoreName, totalScore)) {
+                this.localStoring = true;
+                this.savedScore = Storage.read(fileScoreName);
             }
-            if (!Storage.createFile(fileLinesName, totalLines)) {
-                return;
-            }
-            if (!Storage.createFile(fileLevelName, level)) {
-                return;
-            }
-            this.storing = true;
-            localServerSync();
+            CompletableFuture.runAsync(() -> {
+                if (Storage.canConnect()) {
+                    this.serverStoring = true;
+                    JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
+                    if (data != null) {
+                        int score = data.get("Score").getAsInt();
+                        if (score > this.savedScore) {
+                            this.savedScore = score;
+                        }
+                    }
+                }
+                if (this.localStoring && this.serverStoring) {
+                    localServerSync();
+                }
+            });
         }
+
     }
 
     private void localServerSync() {
-        CompletableFuture.runAsync(() -> {
-            JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
-            int serverScore = 0;
-            int serverLines = 0;
-            int serverLevel = 0;
-            if (data != null) {
-                serverScore = data.get("Score").getAsInt();
-                serverLines = data.get("Lines").getAsInt();
-                serverLevel = data.get("Level").getAsInt();
-            }
+        JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
+        int serverScore = 0;
+        int serverLines = 0;
+        int serverLevel = 0;
+        if (data != null) {
+            serverScore = data.get("Score").getAsInt();
+            serverLines = data.get("Lines").getAsInt();
+            serverLevel = data.get("Level").getAsInt();
+        }
 
-            int localScore = Storage.read(fileScoreName);
-            int localLines = Storage.read(fileLinesName);
-            int localLevel = Storage.read(fileLevelName);
+        int localScore = Storage.read(fileScoreName);
+        int localLines = Storage.read(fileLinesName);
+        int localLevel = Storage.read(fileLevelName);
 
-            if (localScore > serverScore) {
-                Storage.postJsonRequest("Tetris", String.format(dataFormat, "", localScore, localLines, localLevel));
-            } else if (localScore < serverScore) {
-                Storage.write(fileScoreName, serverScore);
-                Storage.write(fileLinesName, serverLines);
-                Storage.write(fileLevelName, serverLevel);
-            }
-        });
+        if (localScore > serverScore) {
+            Storage.postJsonRequest("Tetris", String.format(dataFormat, "", localScore, localLines, localLevel));
+        } else if (localScore < serverScore) {
+            Storage.write(fileScoreName, serverScore);
+            Storage.write(fileLinesName, serverLines);
+            Storage.write(fileLevelName, serverLevel);
+        }
     }
 
     public void tick() {
@@ -113,12 +124,16 @@ public class TetrisGame {
             if (gameOver) {
                 canhold = false;
                 gameOver = true;
-                if (storing && hasBestScore) {
-                    String data = String.format(dataFormat, "", Storage.read(fileScoreName),
-                            Storage.read(fileLinesName), Storage.read(fileLevelName));
-                    CompletableFuture.runAsync(() -> {
+                if (savedScore < totalScore) {
+                    if (localStoring) {
+                        Storage.write(fileScoreName, totalScore);
+                        Storage.write(fileLinesName, totalLines);
+                        Storage.write(fileLevelName, level);
+                    }
+                    if (serverStoring) {
+                        String data = String.format(dataFormat, "", totalScore, totalLines, level);
                         Storage.postJsonRequest("Tetris", data);
-                    });
+                    }
                 }
                 return;
             }
@@ -174,13 +189,6 @@ public class TetrisGame {
                 break;
             default:
                 break;
-        }
-
-        if (storing && (hasBestScore || Storage.read(fileScoreName) < totalScore)) {
-            hasBestScore = true;
-            Storage.write(fileScoreName, totalScore);
-            Storage.write(fileLinesName, totalLines);
-            Storage.write(fileLevelName, level);
         }
     }
 
@@ -338,7 +346,7 @@ public class TetrisGame {
     }
 
     public int getHighScore() {
-        return Storage.read(fileScoreName);
+        return Math.max(totalScore, savedScore);
     }
 
     public int getTotalScore() {
@@ -353,8 +361,12 @@ public class TetrisGame {
         return level;
     }
 
-    public boolean isStoring() {
-        return storing;
+    public boolean isLocalStoring() {
+        return localStoring;
+    }
+
+    public boolean isServerStoring() {
+        return serverStoring;
     }
 
     @Override

@@ -131,7 +131,7 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
 
         // draw information containers
         g.setColor(Color.GRAY);
-        if (game.isStoring()) {
+        if (game.isLocalStoring() || game.isServerStoring()) {
             g.drawRect(TILE_SIZE * 12, TILE_SIZE * 11, TILE_SIZE * 4, TILE_SIZE); // HighScore string
         }
         g.drawRect(TILE_SIZE * 12, TILE_SIZE * 14, TILE_SIZE * 4, TILE_SIZE); // Score string
@@ -141,7 +141,7 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
         // draw information texts
         g.setColor(Color.WHITE);
         g.setFont(new Font("Lucida Grande", 0, TILE_SIZE * 2 / 3));
-        if (game.isStoring()) {
+        if (game.isLocalStoring() || game.isServerStoring()) {
             drawCenteredString(g, "High score:", TILE_SIZE * 14, TILE_SIZE * 10.5);
             drawCenteredString(g, String.format("%d", game.getHighScore()), TILE_SIZE * 14, TILE_SIZE * 11.5);
         }

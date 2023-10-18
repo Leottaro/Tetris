@@ -114,6 +114,10 @@ public class Storage {
         return true;
     }
 
+    public static boolean canConnect() {
+        return getJsonObject() != null;
+    }
+
     private static JsonObject getJsonRequest(URL url) {
         try {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
