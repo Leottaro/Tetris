@@ -7,8 +7,8 @@ public class Tetrominoes {
     private TetroType type;
     private Block[] blocks;
     private boolean isCentered; // if the rotation center is in the center of its block or in top left corner
-    private int x = baseX;
-    private int y = baseY;
+    private int x;
+    private int y;
 
     public Tetrominoes() {
         this(TetroType.getRandom());
@@ -16,31 +16,30 @@ public class Tetrominoes {
 
     public Tetrominoes(TetroType type) {
         this.type = type;
-        isCentered = type.isCentered();
-        blocks = type.getBlocks();
-        this.x = 5;
-        this.y = 0;
+        this.isCentered = type.isCentered();
+        this.blocks = type.getBlocks();
+        this.x = baseX;
+        this.y = baseY;
         for (Block block : blocks) {
+            block.addCoords(baseX, baseY);
             block.setColor(type.getColor());
         }
     }
 
     public void rotateClock() {
         for (Block block : blocks) {
-            if (isCentered) {
-                block.setCoords(-block.getY(), block.getX());
-            } else {
-                block.setCoords(-block.getY() - 1, block.getX());
+            block.setCoords(-block.getY() + y + x, block.getX() + y - x);
+            if (!isCentered) {
+                block.addX(-1);
             }
         }
     }
 
     public void rotateAntiClock() {
         for (Block block : blocks) {
-            if (isCentered) {
-                block.setCoords(block.getY(), -block.getX());
-            } else {
-                block.setCoords(block.getY(), -block.getX() - 1);
+            block.setCoords(block.getY() - y + x, -block.getX() + y + x);
+            if (!isCentered) {
+                block.addY(-1);
             }
         }
     }
@@ -53,12 +52,16 @@ public class Tetrominoes {
         return new Tetrominoes(this.type);
     }
 
-    public Block[] getBlocks() {
-        Block[] blocksCopy = new Block[4];
-        for (int i = 0; i < blocks.length; i++) {
-            blocksCopy[i] = blocks[i].addedCoords(x, y);
-        }
-        return blocksCopy;
+    public int getBlocksSize() {
+        return blocks.length;
+    }
+
+    public Block getBlock(int i) {
+        return blocks[i];
+    }
+
+    public Block cloneBlock(int i) {
+        return blocks[i].clone();
     }
 
     public int getX() {
@@ -71,10 +74,16 @@ public class Tetrominoes {
 
     public void addX(int vel) {
         x += vel;
+        for (Block block : blocks) {
+            block.addX(vel);
+        }
     }
 
     public void addY(int vel) {
         y += vel;
+        for (Block block : blocks) {
+            block.addY(vel);
+        }
     }
 
     @Override

@@ -78,6 +78,7 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
     }
 
     public void draw(Graphics g) {
+        // Draw in terminal
         System.out.println("\033[H\033[2J\033[H");
         System.out.flush();
         System.out.println(game.toString());
@@ -208,8 +209,8 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
 
     @SuppressWarnings("unused")
     private void drawPiece(Graphics g, int topLeftX, int topLeftY, Tetrominoes piece, boolean filled) {
-        for (Block block : piece.getBlocks()) {
-            drawBlock(g, topLeftX, topLeftY, block, filled);
+        for (int i = 0; i < piece.getBlocksSize(); i++) {
+            drawBlock(g, topLeftX, topLeftY, piece.getBlock(i), filled);
         }
     }
 
@@ -227,8 +228,8 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
 
     private void drawPiece(Graphics g, int offsetX, int offsetY, Tetrominoes piece, boolean filled,
             Rectangle frameRect) {
-        for (Block block : piece.getBlocks()) {
-            drawBlock(g, offsetX, offsetY, block, filled, frameRect);
+        for (int i = 0; i < piece.getBlocksSize(); i++) {
+            drawBlock(g, offsetX, offsetY, piece.getBlock(i), filled, frameRect);
         }
     }
 

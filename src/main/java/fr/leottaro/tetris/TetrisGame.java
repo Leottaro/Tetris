@@ -32,17 +32,17 @@ public class TetrisGame {
     }
 
     public TetrisGame(boolean storing) {
-        laidedBlocks = new Block[GRID_WIDTH * GRID_HEIGHT];
-        laidedBlocksSize = 0;
-        piece = new Tetrominoes();
-        holdedPiece = null;
-        nextPiece = new Tetrominoes();
-        gameOver = false;
-        canhold = true;
-        totalScore = 0;
-        totalLines = 0;
-        level = 0;
-        hasBestScore = false;
+        this.laidedBlocks = new Block[GRID_WIDTH * GRID_HEIGHT];
+        this.laidedBlocksSize = 0;
+        this.piece = new Tetrominoes();
+        this.holdedPiece = null;
+        this.nextPiece = new Tetrominoes();
+        this.gameOver = false;
+        this.canhold = true;
+        this.totalScore = 0;
+        this.totalLines = 0;
+        this.level = 0;
+        this.hasBestScore = false;
         this.storing = false;
         if (storing) {
             if (!Storage.createFile(fileScoreName, totalScore)) {
@@ -93,9 +93,9 @@ public class TetrisGame {
         piece.addY(1);
         if (!isPieceOk()) {
             piece.addY(-1);
-            for (Block block : piece.getBlocks()) {
-                if (block.getY() >= 0) {
-                    laidedBlocks[laidedBlocksSize] = block;
+            for (int i = 0; i < piece.getBlocksSize(); i++) {
+                if (piece.getBlock(i).getY() >= 0) {
+                    laidedBlocks[laidedBlocksSize] = piece.getBlock(i);
                     laidedBlocksSize++;
                 } else {
                     gameOver = true;
@@ -206,14 +206,14 @@ public class TetrisGame {
     }
 
     private boolean isPieceOk() {
-        for (Block block : piece.getBlocks()) {
-            int x = block.getX();
-            int y = block.getY();
+        for (int i = 0; i < piece.getBlocksSize(); i++) {
+            int x = piece.getBlock(i).getX();
+            int y = piece.getBlock(i).getY();
             if (x < 0 || GRID_WIDTH <= x || GRID_HEIGHT <= y) {
                 return false;
             }
-            for (int i = 0; i < laidedBlocksSize; i++) {
-                if (laidedBlocks[i].getX() == x && laidedBlocks[i].getY() == y) {
+            for (int j = 0; j < laidedBlocksSize; j++) {
+                if (laidedBlocks[j].getX() == x && laidedBlocks[j].getY() == y) {
                     return false;
                 }
             }
@@ -374,10 +374,10 @@ public class TetrisGame {
         }
 
         if (!gameOver) {
-            for (Block block : piece.getBlocks()) {
-                if (0 <= block.getY() && block.getY() <= GRID_HEIGHT && 0 <= block.getX()
-                        && block.getX() <= GRID_WIDTH) {
-                    chars[block.getY()][block.getX()] = '#';
+            for (int i = 0; i < piece.getBlocksSize(); i++) {
+                if (0 <= piece.getBlock(i).getY() && piece.getBlock(i).getY() <= GRID_HEIGHT
+                        && 0 <= piece.getBlock(i).getX() && piece.getBlock(i).getX() <= GRID_WIDTH) {
+                    chars[piece.getBlock(i).getY()][piece.getBlock(i).getX()] = '#';
                 }
             }
         }

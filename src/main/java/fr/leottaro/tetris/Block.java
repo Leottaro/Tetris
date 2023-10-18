@@ -36,6 +36,14 @@ public class Block {
         this.y = y;
     }
 
+    public void addX(int vel) {
+        x += vel;
+    }
+
+    public void addY(int vel) {
+        y += vel;
+    }
+
     public void setColor(Color col) {
         this.color = col;
     }
@@ -45,13 +53,13 @@ public class Block {
         this.y = y;
     }
 
-    public void addCoords(int x, int y) {
-        this.x += x;
-        this.y += y;
+    public void addCoords(int velX, int velY) {
+        x += velX;
+        y += velY;
     }
 
-    public Block addedCoords(int x, int y) {
-        return new Block(this.x + x, this.y + y, this.color);
+    public Block addedCoords(int velX, int velY) {
+        return new Block(x + velX, y + velY, color);
     }
 
     @Override
