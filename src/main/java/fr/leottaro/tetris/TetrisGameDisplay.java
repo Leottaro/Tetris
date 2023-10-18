@@ -87,30 +87,32 @@ public class TetrisGameDisplay extends JPanel implements ActionListener, KeyList
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // Draw laided pieces
-        Rectangle frameRect = new Rectangle(1, 1, TetrisGame.GRID_WIDTH, TetrisGame.GRID_HEIGHT);
-        for (int i = 0; i < game.getLaidedBlocksSize(); i++) {
-            drawBlock(g, 1, 1, game.getBlock(i), true, frameRect);
+        if (isRunning()) {
+            // Draw laided pieces
+            Rectangle frameRect = new Rectangle(1, 1, TetrisGame.GRID_WIDTH, TetrisGame.GRID_HEIGHT);
+            for (int i = 0; i < game.getLaidedBlocksSize(); i++) {
+                drawBlock(g, 1, 1, game.getBlock(i), true, frameRect);
+            }
+
+            // draw controlled piece
+            if (!game.isGameOver()) {
+                // draw piece
+                drawPiece(g, 1, 1, game.getPiece(), true, frameRect);
+
+                // draw preview
+                drawPiece(g, 1, 1, game.getPreview(), false, frameRect);
+            }
+
+            // draw holded piece
+            frameRect = new Rectangle(12, 2, 4, 2);
+            if (game.getHoldedPiece() != null) {
+                drawPiece(g, 9, 3, game.getHoldedPiece(), true, frameRect);
+            }
+
+            // draw next piece
+            frameRect = new Rectangle(12, 6, 4, 2);
+            drawPiece(g, 9, 7, game.getNextPiece(), true, frameRect);
         }
-
-        // draw controlled piece
-        if (!game.isGameOver()) {
-            // draw piece
-            drawPiece(g, 1, 1, game.getPiece(), true, frameRect);
-
-            // draw preview
-            drawPiece(g, 1, 1, game.getPreview(), false, frameRect);
-        }
-
-        // draw holded piece
-        frameRect = new Rectangle(12, 2, 4, 2);
-        if (game.getHoldedPiece() != null) {
-            drawPiece(g, 9, 3, game.getHoldedPiece(), true, frameRect);
-        }
-
-        // draw next piece
-        frameRect = new Rectangle(12, 6, 4, 2);
-        drawPiece(g, 9, 7, game.getNextPiece(), true, frameRect);
 
         // draw game containers
         g.setColor(Color.GRAY);
