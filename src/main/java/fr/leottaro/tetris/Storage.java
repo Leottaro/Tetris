@@ -29,11 +29,9 @@ public class Storage {
         } else if (OS.indexOf("mac") != -1) {
             // Mac
             return String.format("%s/Library/Application Support/%s/", System.getProperty("user.home"), ".leottaro");
-        } else if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
-            // Linux
-            return String.format("/usr/tmp/%s/", System.getProperty("user.home"), ".leottaro");
         } else {
-            return null;
+            // Linux and others
+            return String.format("%s/%s/", System.getProperty("user.home"), ".leottaro");
         }
     }
 
