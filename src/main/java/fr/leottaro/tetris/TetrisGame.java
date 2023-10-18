@@ -40,7 +40,7 @@ public class TetrisGame {
         this.nextPiece = new Tetrominoes();
         this.gameOver = false;
         this.canhold = true;
-        this.savedScore = -1;
+        this.savedScore = 0;
         this.totalScore = 0;
         this.totalLines = 0;
         this.level = 0;
@@ -125,15 +125,7 @@ public class TetrisGame {
                 canhold = false;
                 gameOver = true;
                 if (savedScore < totalScore) {
-                    if (localStoring) {
-                        Storage.write(fileScoreName, totalScore);
-                        Storage.write(fileLinesName, totalLines);
-                        Storage.write(fileLevelName, level);
-                    }
-                    if (serverStoring) {
-                        String data = String.format(dataFormat, "", totalScore, totalLines, level);
-                        Storage.postJsonRequest("Tetris", data);
-                    }
+                    saveScore();
                 }
                 return;
             }
@@ -170,6 +162,7 @@ public class TetrisGame {
 
             if (level < DELAY_PER_LEVEL.length && totalLines >= 10 * level) {
                 level++;
+                saveScore();
             }
         }
 
@@ -189,6 +182,18 @@ public class TetrisGame {
                 break;
             default:
                 break;
+        }
+    }
+
+    private void saveScore() {
+        if (localStoring) {
+            Storage.write(fileScoreName, totalScore);
+            Storage.write(fileLinesName, totalLines);
+            Storage.write(fileLevelName, level);
+        }
+        if (serverStoring) {
+            String data = String.format(dataFormat, "", totalScore, totalLines, level);
+            Storage.postJsonRequest("Tetris", data);
         }
     }
 
