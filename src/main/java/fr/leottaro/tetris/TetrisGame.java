@@ -54,34 +54,26 @@ public class TetrisGame {
                 this.savedScore = Storage.read(fileScoreName);
             }
             CompletableFuture.runAsync(() -> {
-                if (Storage.canConnect()) {
+                JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
+                if (data != null) {
                     this.serverStoring = true;
-                    JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
-                    if (data != null) {
-                        int score = data.get("Score").getAsInt();
-                        if (score > this.savedScore) {
-                            this.savedScore = score;
-                        }
+                    int score = data.get("Score").getAsInt();
+                    if (score > this.savedScore) {
+                        this.savedScore = score;
                     }
                 }
-                if (this.localStoring && this.serverStoring) {
-                    localServerSync();
+                if (this.localStoring && this.serverStoring && !data.keySet().isEmpty()) {
+                    localServerSync(data);
                 }
             });
         }
 
     }
 
-    private void localServerSync() {
-        JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
-        int serverScore = 0;
-        int serverLines = 0;
-        int serverLevel = 0;
-        if (data != null) {
-            serverScore = data.get("Score").getAsInt();
-            serverLines = data.get("Lines").getAsInt();
-            serverLevel = data.get("Level").getAsInt();
-        }
+    private void localServerSync(JsonObject data) {
+        int serverScore = data.get("Score").getAsInt();
+        int serverLines = data.get("Lines").getAsInt();
+        int serverLevel = data.get("Level").getAsInt();
 
         int localScore = Storage.read(fileScoreName);
         int localLines = Storage.read(fileLinesName);

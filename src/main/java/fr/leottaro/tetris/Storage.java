@@ -112,15 +112,13 @@ public class Storage {
         return true;
     }
 
-    public static boolean canConnect() {
-        return getJsonObject() != null;
-    }
-
     private static JsonObject getJsonRequest(URL url) {
         try {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Accept", "application/json");
+            con.setConnectTimeout(5000);
+            con.setReadTimeout(5000);
             con.connect();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
