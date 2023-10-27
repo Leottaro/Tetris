@@ -21,6 +21,8 @@ public class Tetris {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        System.out.println(TetrisStorage.class.getName());
+
         TetrisGameDisplay Game = new TetrisGameDisplay(boardWidth, boardHeight, tileSize);
         frame.add(Game);
         frame.pack();

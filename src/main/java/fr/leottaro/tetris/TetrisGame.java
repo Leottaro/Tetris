@@ -1,18 +1,13 @@
 package fr.leottaro.tetris;
 
 import java.util.concurrent.CompletableFuture;
-
-import com.google.gson.JsonObject;
+import fr.leottaro.storage.StorageLib;
 
 public class TetrisGame {
     public static final int[] DELAY_PER_LEVEL = new int[] { 800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83,
             83, 67, 67, 67, 50, 50, 50, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 17 };
     public static final int GRID_WIDTH = 10;
     public static final int GRID_HEIGHT = 20;
-    private static final String dataFormat = "{\"Pseudo\":\"%s\",\"Score\":%d,\"Lines\":%d,\"Level\":%d}";
-    private static final String fileScoreName = "tetris_score";
-    private static final String fileLinesName = "tetris_lines";
-    private static final String fileLevelName = "tetris_level";
 
     private Block[] laidedBlocks;
     private int laidedBlocksSize;
@@ -21,10 +16,8 @@ public class TetrisGame {
     private Tetrominoes nextPiece;
     private boolean gameOver;
     private boolean canhold;
-    private int savedScore;
-    private int totalScore;
-    private int totalLines;
-    private int level;
+    private TetrisStorage savedData;
+    private TetrisStorage actualData;
     private boolean localStoring;
     private boolean serverStoring;
 
@@ -40,51 +33,24 @@ public class TetrisGame {
         this.nextPiece = new Tetrominoes();
         this.gameOver = false;
         this.canhold = true;
-        this.savedScore = 0;
-        this.totalScore = 0;
-        this.totalLines = 0;
-        this.level = 0;
+        this.savedData = new TetrisStorage();
+        this.actualData = new TetrisStorage();
         this.localStoring = false;
         this.serverStoring = false;
 
         if (storing) {
-            if (Storage.createFile(fileLinesName, totalLines) && Storage.createFile(fileLevelName, level)
-                    && Storage.createFile(fileScoreName, totalScore)) {
-                this.localStoring = true;
-                this.savedScore = Storage.read(fileScoreName);
+            // TODO change StorageLib baseUrl
+            this.localStoring = StorageLib.createFile(TetrisStorage.class);
+            if (localStoring) {
+                this.savedData = (TetrisStorage) StorageLib.read(TetrisStorage.class);
             }
+
             CompletableFuture.runAsync(() -> {
-                JsonObject data = Storage.getJsonObject("Tetris", "userName=" + System.getProperty("user.name"));
-                if (data != null) {
-                    this.serverStoring = true;
-                    int score = data.get("Score").getAsInt();
-                    if (score > this.savedScore) {
-                        this.savedScore = score;
-                    }
-                }
-                if (this.localStoring && this.serverStoring && !data.keySet().isEmpty()) {
-                    localServerSync(data);
+                this.serverStoring = StorageLib.getJsonRequest() != null;
+                if (localStoring && serverStoring) {
+                    StorageLib.syncLocalServer(TetrisStorage.class, TetrisStorage.gameName);
                 }
             });
-        }
-
-    }
-
-    private void localServerSync(JsonObject data) {
-        int serverScore = data.get("Score").getAsInt();
-        int serverLines = data.get("Lines").getAsInt();
-        int serverLevel = data.get("Level").getAsInt();
-
-        int localScore = Storage.read(fileScoreName);
-        int localLines = Storage.read(fileLinesName);
-        int localLevel = Storage.read(fileLevelName);
-
-        if (localScore > serverScore) {
-            Storage.postJsonRequest("Tetris", String.format(dataFormat, "", localScore, localLines, localLevel));
-        } else if (localScore < serverScore) {
-            Storage.write(fileScoreName, serverScore);
-            Storage.write(fileLinesName, serverLines);
-            Storage.write(fileLevelName, serverLevel);
         }
     }
 
@@ -116,7 +82,7 @@ public class TetrisGame {
             if (gameOver) {
                 canhold = false;
                 gameOver = true;
-                if (savedScore < totalScore) {
+                if (savedData.getScore() < actualData.getScore()) {
                     saveScore();
                 }
                 return;
@@ -152,25 +118,25 @@ public class TetrisGame {
             }
             laidedBlocksSize = j;
 
-            if (level < DELAY_PER_LEVEL.length && totalLines >= 10 * level) {
-                level++;
+            if (actualData.getLevel() < DELAY_PER_LEVEL.length && actualData.getLines() >= 10 * actualData.getLevel()) {
+                actualData.incrLevel();
                 saveScore();
             }
         }
 
-        totalLines += fullLines.length;
+        actualData.addLines(fullLines.length);
         switch (fullLines.length) {
             case 1:
-                totalScore += 40 * level;
+                actualData.addScore(40 * actualData.getLevel());
                 break;
             case 2:
-                totalScore += 100 * level;
+                actualData.addScore(100 * actualData.getLevel());
                 break;
             case 3:
-                totalScore += 300 * level;
+                actualData.addScore(300 * actualData.getLevel());
                 break;
             case 4:
-                totalScore += 1200 * level;
+                actualData.addScore(1200 * actualData.getLevel());
                 break;
             default:
                 break;
@@ -179,13 +145,13 @@ public class TetrisGame {
 
     private void saveScore() {
         if (localStoring) {
-            Storage.write(fileScoreName, totalScore);
-            Storage.write(fileLinesName, totalLines);
-            Storage.write(fileLevelName, level);
+            TetrisStorage localData = (TetrisStorage) StorageLib.read(TetrisStorage.class);
+            if (localData.getScore() < actualData.getScore()) {
+                StorageLib.write(actualData);
+            }
         }
         if (serverStoring) {
-            String data = String.format(dataFormat, "", totalScore, totalLines, level);
-            Storage.postJsonRequest("Tetris", data);
+            CompletableFuture.runAsync(() -> StorageLib.postJsonRequest(TetrisStorage.gameName, actualData));
         }
     }
 
@@ -343,19 +309,19 @@ public class TetrisGame {
     }
 
     public int getHighScore() {
-        return Math.max(totalScore, savedScore);
+        return Math.max(actualData.getScore(), savedData.getScore());
     }
 
     public int getTotalScore() {
-        return totalScore;
+        return actualData.getScore();
     }
 
     public int getTotalLines() {
-        return totalLines;
+        return actualData.getLines();
     }
 
     public int getLevel() {
-        return level;
+        return actualData.getLevel();
     }
 
     public boolean isLocalStoring() {
@@ -414,10 +380,11 @@ public class TetrisGame {
         game += "-+\n";
 
         if (gameOver) {
-            game += String.format("GAME OVER ! \nHigh score: %d \nLast score: %d\n", getHighScore(), totalScore);
+            game += String.format("GAME OVER ! \nHigh score: %d \nLast score: %d\n", getHighScore(),
+                    actualData.getScore());
         } else {
-            game += String.format("Highscore: %d \nScore: %d \nLines: %d \nLevel: %d", getHighScore(), totalScore,
-                    totalLines, level);
+            game += String.format("Highscore: %d \nScore: %d \nLines: %d \nLevel: %d", getHighScore(),
+                    actualData.getScore(), actualData.getLines(), actualData.getLevel());
         }
 
         return game;
